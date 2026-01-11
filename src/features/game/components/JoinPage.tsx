@@ -1,34 +1,35 @@
-import { useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useCallback, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Play, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { joinQuiz } from '@/adapters';
 
 /**
  * JoinPage Component
- * Allows students to join a quiz session using a unique code
- * Clean, centered UI with minimal distractions
+ * Allows students to join a quiz session using a unique quiz_key
+ * 
+ * Flow:
+ * 1. Student enters quiz_key (e.g., "V8QLAP") or receives it via URL (?code=V8QLAP)
+ * 2. POST /quiz/join with { quizKey: "V8QLAP" }
+ * 3. Backend returns full quiz with questions
+ * 4. Navigate to game with quiz data in state
  */
 export const JoinPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [quizCode, setQuizCode] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleJoin = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Join quiz with a given code
+  const joinWithCode = useCallback(async (code: string) => {
+    const trimmedCode = code.trim().toUpperCase();
     
-    const trimmedCode = quizCode.trim().toUpperCase();
-    
-    if (!trimmedCode) {
-      setError('Please enter a quiz code');
-      return;
-    }
-
-    if (trimmedCode.length < 4) {
+    if (!trimmedCode || trimmedCode.length < 4) {
       setError('Quiz code must be at least 4 characters');
       return;
     }
@@ -37,21 +38,41 @@ export const JoinPage = () => {
     setLoading(true);
 
     try {
-      // TODO: Validate code with backend API
-      // const quiz = await validateQuizCode(trimmedCode);
+      // Call the backend API to join quiz with quiz_key
+      const result = await joinQuiz(trimmedCode);
       
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      if (!result.success || !result.data) {
+        throw new Error(result.error || 'Invalid quiz code');
+      }
 
-      // For now, navigate to the quiz play page
-      // In production, this would validate the code first
-      navigate(`/quiz/${trimmedCode}/play`);
-    } catch {
-      setError('Invalid quiz code. Please check and try again.');
-    } finally {
+      // Navigate to play page with the quiz data
+      navigate(`/quiz/${result.data.id}/play`, {
+        state: { quiz: result.data, quizKey: trimmedCode }
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Invalid quiz code. Please check and try again.';
+      setError(message);
       setLoading(false);
     }
-  }, [quizCode, navigate]);
+  }, [navigate]);
+
+  // Auto-join if code is provided via URL query parameter
+  useEffect(() => {
+    const codeFromUrl = searchParams.get('code');
+    if (codeFromUrl) {
+      const sanitizedCode = codeFromUrl.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+      setQuizCode(sanitizedCode);
+      // Auto-join if code is valid length
+      if (sanitizedCode.length >= 4) {
+        joinWithCode(sanitizedCode);
+      }
+    }
+  }, [searchParams, joinWithCode]);
+
+  const handleJoin = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault();
+    joinWithCode(quizCode);
+  }, [quizCode, joinWithCode]);
 
   const handleCodeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     // Only allow alphanumeric characters, auto-uppercase

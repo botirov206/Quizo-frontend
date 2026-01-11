@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, Play, StopCircle } from 'lucide-react';
@@ -9,6 +9,7 @@ import { Timer } from './Timer';
 import { ProgressBar } from './ProgressBar';
 import { ScoreBoard } from './ScoreBoard';
 import type { StandardQuiz } from '@/types/quiz';
+import { joinQuiz } from '@/adapters';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,82 +22,38 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
-// Mock function to fetch quiz - replace with real API call
-const fetchQuizById = async (id: string): Promise<StandardQuiz> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
+// Location state type for quiz data passed from JoinPage or QuizCard
+interface LocationState {
+  quiz?: StandardQuiz;
+  quizKey?: string;
+}
 
-  // Mock quiz data
-  return {
-    id,
-    title: 'JavaScript Fundamentals Quiz',
-    description: 'Test your knowledge of JavaScript basics',
-    source: 'custom',
-    category: 'Programming',
-    difficulty: 'medium',
-    timeLimit: 30,
-    questions: [
-      {
-        id: 'q1',
-        text: 'What is the correct way to declare a variable in JavaScript?',
-        type: 'multiple',
-        options: ['let myVar = 10', 'variable myVar = 10', 'var = 10 myVar', 'myVar := 10'],
-        correctAnswerId: 'let myVar = 10',
-        explanation: 'In modern JavaScript, we use let, const, or var to declare variables.',
-      },
-      {
-        id: 'q2',
-        text: 'Which of the following is NOT a JavaScript data type?',
-        type: 'multiple',
-        options: ['String', 'Boolean', 'Float', 'Undefined'],
-        correctAnswerId: 'Float',
-        explanation: 'JavaScript uses the Number type for both integers and floating-point numbers.',
-      },
-      {
-        id: 'q3',
-        text: 'What does "===" operator do in JavaScript?',
-        type: 'multiple',
-        options: [
-          'Checks equality without type coercion',
-          'Assigns a value',
-          'Checks inequality',
-          'Compares memory addresses',
-        ],
-        correctAnswerId: 'Checks equality without type coercion',
-        explanation: 'The === operator checks for strict equality, comparing both value and type.',
-      },
-      {
-        id: 'q4',
-        text: 'What is a closure in JavaScript?',
-        type: 'multiple',
-        options: [
-          'A function with access to parent scope',
-          'A way to close the browser',
-          'An error handling mechanism',
-          'A type of loop',
-        ],
-        correctAnswerId: 'A function with access to parent scope',
-        explanation: 'A closure is a function that has access to variables in its outer (enclosing) scope.',
-      },
-      {
-        id: 'q5',
-        text: 'Which method is used to add an element at the end of an array?',
-        type: 'multiple',
-        options: ['push()', 'pop()', 'shift()', 'unshift()'],
-        correctAnswerId: 'push()',
-        explanation: 'The push() method adds one or more elements to the end of an array.',
-      },
-    ],
-    createdBy: 'teacher-1',
-    createdAt: new Date().toISOString(),
-  };
+/**
+ * Fetches quiz using quiz_key from backend
+ * POST /quiz/join returns full quiz with questions
+ */
+const fetchQuizByKey = async (quizKey: string): Promise<StandardQuiz> => {
+  const result = await joinQuiz(quizKey);
+  
+  if (!result.success || !result.data) {
+    throw new Error(result.error || 'Failed to fetch quiz');
+  }
+  
+  return result.data;
 };
 
 export const GameEngine = () => {
   const { quizId } = useParams<{ quizId: string }>();
+  const location = useLocation();
   const navigate = useNavigate();
   const { state, startQuiz, selectAnswer, resetGame, endQuizEarly, currentQuestion } = useGameEngine();
   const [showEndDialog, setShowEndDialog] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  
+  // Get quiz data from navigation state (passed from JoinPage or QuizCard)
+  const locationState = location.state as LocationState | undefined;
+  const passedQuiz = locationState?.quiz;
+  const passedQuizKey = locationState?.quizKey;
 
   useEffect(() => {
     if (quizId && state.status === 'IDLE') {
@@ -106,26 +63,66 @@ export const GameEngine = () => {
   }, [quizId, state.status]);
 
   const handleStartQuiz = async () => {
-    if (!quizId) return;
+    setFetchError(null);
     
     try {
-      const quiz = await fetchQuizById(quizId);
+      let quiz: StandardQuiz;
+      
+      // Priority 1: Use quiz data passed from navigation state
+      if (passedQuiz && passedQuiz.questions && passedQuiz.questions.length > 0) {
+        quiz = passedQuiz;
+      }
+      // Priority 2: Fetch using quiz_key passed from navigation
+      else if (passedQuizKey) {
+        quiz = await fetchQuizByKey(passedQuizKey);
+      }
+      // Priority 3: Use quizId as quiz_key (for direct URL access or from QuizCard)
+      else if (quizId) {
+        // Try to use quizId as a quiz_key
+        quiz = await fetchQuizByKey(quizId);
+      }
+      else {
+        throw new Error('No quiz ID or key provided');
+      }
+      
       startQuiz(quiz);
     } catch (error) {
       console.error('Failed to start quiz:', error);
+      const message = error instanceof Error ? error.message : 'Failed to load quiz';
+      setFetchError(message);
     }
   };
 
   const handlePlayAgain = () => {
     resetGame();
-    if (quizId) {
-      handleStartQuiz();
-    }
+    handleStartQuiz();
   };
 
   const handleGoHome = () => {
     navigate('/dashboard');
   };
+
+  // Error state
+  if (fetchError) {
+    return (
+      <div className="container max-w-2xl mx-auto py-8">
+        <Card>
+          <CardHeader className="text-center">
+            <CardTitle className="text-3xl text-destructive">Error</CardTitle>
+            <CardDescription>{fetchError}</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center gap-4 py-8">
+            <Button size="lg" onClick={() => navigate('/dashboard')} variant="outline">
+              Back to Dashboard
+            </Button>
+            <Button size="lg" onClick={() => navigate('/join')} variant="default">
+              Try Another Code
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   // Loading state
   if (state.status === 'LOADING') {
@@ -148,7 +145,9 @@ export const GameEngine = () => {
         <Card>
           <CardHeader className="text-center">
             <CardTitle className="text-3xl">Ready to Play?</CardTitle>
-            <CardDescription>Click the button below to start the quiz</CardDescription>
+            <CardDescription>
+              {passedQuiz?.title || 'Click the button below to start the quiz'}
+            </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-4 py-8">
             <Button size="lg" onClick={handleStartQuiz} className="px-8">

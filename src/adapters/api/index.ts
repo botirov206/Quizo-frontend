@@ -20,7 +20,8 @@ export {
   fetchUserQuizzesRaw,
   createQuizRaw,
   joinQuizRaw,
-  fetchLeaderboardRaw,
-  fetchLeaderboardByQuizRaw,
-  submitQuizResultRaw,
+  // Leaderboard functions removed - backend not ready
+  // fetchLeaderboardRaw,
+  // fetchLeaderboardByQuizRaw,
+  // submitQuizResultRaw,
 } from './backendApi';

@@ -52,26 +52,48 @@ export interface OpenTDBCategoriesResponse {
 
 /**
  * Backend question format from api.kahoot.uz
- * Format: { question, options: string[], correctAnswer }
+ * Format: { id, question, options: string[], correct_answer }
+ * 
+ * NOTE: Backend uses snake_case (correct_answer), we normalize to camelCase
  */
 export interface BackendQuestion {
+  id?: string;
   question: string;
   options: string[];
-  correctAnswer: string;
+  correct_answer?: string;  // Backend uses snake_case
+  correctAnswer?: string;   // For creation request (camelCase)
 }
 
 /**
- * Backend quiz format from api.kahoot.uz
- * Format: { id, title, quizKey, questions }
+ * Backend quiz format from api.kahoot.uz (list response)
+ * GET /quizzes returns quizzes WITHOUT questions
+ * Format: { id, title, description, category, difficulty, time_limit, quiz_key }
+ */
+export interface BackendQuizListItem {
+  id: string;
+  title: string;
+  description?: string;
+  category?: string;
+  difficulty?: 'easy' | 'medium' | 'hard';
+  time_limit?: number;  // Backend uses snake_case
+  quiz_key: string;     // Backend uses snake_case
+}
+
+/**
+ * Backend quiz format from api.kahoot.uz (full quiz with questions)
+ * POST /quiz/join returns the full quiz with questions
  */
 export interface BackendQuiz {
   id: string;
   title: string;
-  quizKey: string;
-  questions?: BackendQuestion[];
   description?: string;
   category?: string;
   difficulty?: 'easy' | 'medium' | 'hard';
+  time_limit?: number;    // Backend uses snake_case
+  quiz_key: string;       // Backend uses snake_case
+  questions?: BackendQuestion[];
+  // Legacy support (kept for backwards compatibility)
+  quizKey?: string;
   timeLimit?: number;
   createdBy?: {
     id: string;
@@ -82,12 +104,46 @@ export interface BackendQuiz {
 }
 
 /**
- * GET /quiz response - returns array of quizzes
+ * POST /quiz/join response
+ * Returns quiz metadata and questions separately
  */
-export type BackendQuizzesResponse = BackendQuiz[];
+export interface BackendJoinQuizResponse {
+  quiz: BackendQuizListItem;
+  questions: BackendQuestion[];
+}
+
+/**
+ * GET /quizzes response - returns array of quiz list items (no questions)
+ */
+export type BackendQuizzesResponse = BackendQuizListItem[];
+
+/**
+ * POST /quiz request body
+ */
+export interface BackendCreateQuizRequest {
+  title: string;
+  description: string;
+  category: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  time_limit: number;
+  questions: Array<{
+    question: string;
+    options: string[];
+    correctAnswer: string;
+  }>;
+}
 
 /**
  * POST /quiz response
+ * Backend returns: {"success":true,"quizKey":"BV7AZY"}
+ */
+export interface BackendCreateQuizResponse {
+  success: boolean;
+  quizKey: string;
+}
+
+/**
+ * Legacy quiz response (for fetching quiz details)
  */
 export interface BackendQuizResponse {
   quiz: BackendQuiz;

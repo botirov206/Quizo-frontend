@@ -3,7 +3,7 @@
  * Game engine for OpenTDB quizzes with difficulty-based scoring
  */
 
-import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,7 +12,8 @@ import { fetchOpenTDBQuiz, type OpenTDBDifficulty } from '@/adapters';
 import type { StandardQuiz } from '@/types/quiz';
 import { useQuizResults } from '../hooks/useQuizResults';
 import { DIFFICULTY_POINTS, type QuizResult } from '../types';
-import { QuizWithLeaderboard, type LeaderboardEntry } from '@/features/game';
+// Leaderboard removed - backend not ready
+// import { QuizWithLeaderboard, type LeaderboardEntry } from '@/features/game';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -293,17 +294,8 @@ export const OpenTDBGame = () => {
     fetchQuiz();
   }, [timePerQuestion, fetchQuiz]);
 
-  // Mock leaderboard data for the category
-  // TODO: Replace with real API call to fetch category leaderboard
-  const leaderboardEntries: LeaderboardEntry[] = useMemo(() => [
-    { id: '1', name: 'Alex Johnson', firstName: 'Alex', lastName: 'Johnson', points: 950, timeSpent: 120 },
-    { id: '2', name: 'Sarah Smith', firstName: 'Sarah', lastName: 'Smith', points: 920, timeSpent: 135 },
-    { id: '3', name: 'Mike Brown', firstName: 'Mike', lastName: 'Brown', points: 880, timeSpent: 110 },
-    { id: '4', name: 'Emily Davis', firstName: 'Emily', lastName: 'Davis', points: 850, timeSpent: 145 },
-    { id: '5', name: 'Chris Wilson', firstName: 'Chris', lastName: 'Wilson', points: 820, timeSpent: 130 },
-    { id: '6', name: 'Lisa Taylor', firstName: 'Lisa', lastName: 'Taylor', points: 780, timeSpent: 155 },
-    { id: '7', name: 'David Lee', firstName: 'David', lastName: 'Lee', points: 750, timeSpent: 140 },
-  ], []);
+  // Leaderboard removed - backend not ready
+  // TODO: Add leaderboard when backend API is functional
 
   // End quiz early - marks remaining questions as incorrect
   const handleEndQuizEarly = useCallback(() => {
@@ -465,12 +457,7 @@ export const OpenTDBGame = () => {
 
     return (
       <div className="min-h-screen bg-gradient-to-br from-background to-muted p-4">
-        <QuizWithLeaderboard
-          leaderboardEntries={leaderboardEntries}
-          showLeaderboard={true}
-          leaderboardTitle="Category Rankings"
-          categoryId={categoryId.toString()}
-        >
+        <div className="container max-w-4xl mx-auto">
           <div className="space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
@@ -592,7 +579,7 @@ export const OpenTDBGame = () => {
               </CardContent>
             </Card>
           </div>
-        </QuizWithLeaderboard>
+        </div>
       </div>
     );
   }
@@ -606,12 +593,7 @@ export const OpenTDBGame = () => {
 
     return (
       <div className="min-h-screen bg-gradient-to-br from-background to-muted p-4">
-        <QuizWithLeaderboard
-          leaderboardEntries={leaderboardEntries}
-          showLeaderboard={true}
-          leaderboardTitle="Category Rankings"
-          categoryId={categoryId.toString()}
-        >
+        <div className="container max-w-4xl mx-auto">
           <div className="space-y-6">
             <Card>
               <CardHeader className="text-center pb-2">
@@ -735,7 +717,7 @@ export const OpenTDBGame = () => {
             </CardContent>
           </Card>
           </div>
-        </QuizWithLeaderboard>
+        </div>
       </div>
     );
   }

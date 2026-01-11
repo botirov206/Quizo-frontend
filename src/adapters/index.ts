@@ -48,9 +48,12 @@ export {
   fetchQuizzesAuto,
   fetchQuizByIdAuto,
   joinQuiz,
-  fetchLeaderboard,
-  fetchQuizLeaderboard,
-  submitQuizResult,
+  createBackendQuiz,
+  type CreateQuizResult,
+  // Leaderboard functions removed - backend not ready
+  // fetchLeaderboard,
+  // fetchQuizLeaderboard,
+  // submitQuizResult,
 } from './services';
 
 // ============================================================================
@@ -66,9 +69,11 @@ export {
   fetchBackendQuizzesRaw,
   fetchBackendQuizByIdRaw,
   joinQuizRaw,
-  fetchLeaderboardRaw,
-  fetchLeaderboardByQuizRaw,
-  submitQuizResultRaw,
+  createQuizRaw,
+  // Leaderboard functions removed - backend not ready
+  // fetchLeaderboardRaw,
+  // fetchLeaderboardByQuizRaw,
+  // submitQuizResultRaw,
 } from './api';
 
 // ============================================================================
@@ -83,6 +88,8 @@ export {
   normalizeBackendQuestions,
   normalizeBackendQuiz,
   normalizeBackendQuizzes,
+  normalizeBackendQuizListItem,
+  normalizeJoinQuizResponse,
 } from './normalizers';
 
 // ============================================================================
@@ -141,11 +148,15 @@ export type {
   // Backend Types (api.kahoot.uz)
   BackendQuiz,
   BackendQuestion,
+  BackendQuizListItem,
   BackendQuizzesResponse,
   BackendQuizResponse,
+  BackendJoinQuizResponse,
+  BackendCreateQuizRequest,
   JoinQuizRequest,
-  LeaderboardEntry,
-  SubmitResultRequest,
+  // Leaderboard types - kept for future use
+  // LeaderboardEntry,
+  // SubmitResultRequest,
 
   // Adapter Types
   QuizFetchOptions,

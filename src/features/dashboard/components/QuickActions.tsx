@@ -15,12 +15,11 @@ export const QuickActions = () => {
 
   const handleJoinTest = useCallback(() => {
     if (testCode.trim().length === 6) {
-      // TODO: Implement join test logic
-      console.log('Joining test with code:', testCode);
-      alert(`Joining test: ${testCode}`);
+      // Navigate to join page with the quiz code
+      navigate(`/join?code=${testCode.trim()}`);
       setTestCode('');
     }
-  }, [testCode]);
+  }, [testCode, navigate]);
 
   const handleCodeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);

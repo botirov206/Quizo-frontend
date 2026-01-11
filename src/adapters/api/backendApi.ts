@@ -3,22 +3,31 @@
  * Handles all HTTP requests to our custom backend (api.kahoot.uz)
  * 
  * Single Responsibility: HTTP requests only, no data transformation
+ * 
+ * NOTE: Current backend API has some inconsistencies:
+ * - GET /quizzes returns list of quizzes (should be /quizzes but backend uses /quiz)
+ * - POST /quiz creates a quiz
+ * - POST /quiz/join joins a quiz with quiz_key
  */
 
 import type { 
   BackendQuizzesResponse, 
   BackendQuizResponse, 
   BackendQuiz,
+  BackendJoinQuizResponse,
+  BackendCreateQuizRequest,
+  BackendCreateQuizResponse,
   JoinQuizRequest,
-  LeaderboardEntry,
-  SubmitResultRequest 
 } from '../types';
 import { apiClient } from '@/lib/axios';
 import { BACKEND_CONFIG } from '../constants';
 
 /**
  * Fetches all quizzes from the backend
- * GET /quiz - Returns array of quizzes
+ * GET /quizzes - Returns array of quizzes (without questions)
+ * 
+ * NOTE: Backend currently uses /quiz endpoint, should be /quizzes
+ * We're adapting to the current backend behavior
  */
 export const fetchBackendQuizzesRaw = async (): Promise<BackendQuizzesResponse> => {
   const response = await apiClient.get<BackendQuizzesResponse>(
@@ -29,7 +38,8 @@ export const fetchBackendQuizzesRaw = async (): Promise<BackendQuizzesResponse> 
 
 /**
  * Fetches a single quiz by ID from the backend
- * Note: Backend might return quiz directly or wrapped in object
+ * Note: This endpoint may not be fully functional in current backend
+ * Use joinQuizRaw with quiz_key instead for getting full quiz with questions
  */
 export const fetchBackendQuizByIdRaw = async (
   id: string
@@ -47,6 +57,7 @@ export const fetchBackendQuizByIdRaw = async (
 
 /**
  * Fetches quizzes created by the current user
+ * NOTE: May not be implemented in current backend
  */
 export const fetchUserQuizzesRaw = async (): Promise<BackendQuizzesResponse> => {
   const response = await apiClient.get<BackendQuizzesResponse>(
@@ -57,18 +68,26 @@ export const fetchUserQuizzesRaw = async (): Promise<BackendQuizzesResponse> => 
 
 /**
  * Creates a new quiz
- * POST /quiz
+ * POST /quiz/create
+ * 
+ * Request format:
+ * {
+ *   "title": "JavaScript Basics",
+ *   "description": "hello world",
+ *   "category": "Programming",
+ *   "difficulty": "easy",
+ *   "time_limit": 60,
+ *   "questions": [
+ *     {
+ *       "question": "What is JS?",
+ *       "options": ["Language", "Framework", "DB"],
+ *       "correctAnswer": "Language"
+ *     }
+ *   ]
+ * }
  */
-export const createQuizRaw = async (quizData: {
-  title: string;
-  quizKey: string;
-  questions: Array<{
-    question: string;
-    options: string[];
-    correctAnswer: string;
-  }>;
-}): Promise<BackendQuizResponse> => {
-  const response = await apiClient.post<BackendQuizResponse>(
+export const createQuizRaw = async (quizData: BackendCreateQuizRequest): Promise<BackendCreateQuizResponse> => {
+  const response = await apiClient.post<BackendCreateQuizResponse>(
     BACKEND_CONFIG.ENDPOINTS.CREATE_QUIZ,
     quizData
   );
@@ -76,51 +95,33 @@ export const createQuizRaw = async (quizData: {
 };
 
 /**
- * Join a quiz using quiz key
+ * Join a quiz using quiz_key
  * POST /quiz/join
+ * 
+ * Request: { quizKey: "V8QLAP" }
+ * 
+ * Response:
+ * {
+ *   "quiz": { id, title, description, category, difficulty, time_limit, quiz_key },
+ *   "questions": [{ id, question, options, correct_answer }]
+ * }
  */
-export const joinQuizRaw = async (quizKey: string): Promise<BackendQuiz> => {
-  const response = await apiClient.post<BackendQuiz>(
+export const joinQuizRaw = async (quizKey: string): Promise<BackendJoinQuizResponse> => {
+  const response = await apiClient.post<BackendJoinQuizResponse>(
     BACKEND_CONFIG.ENDPOINTS.JOIN_QUIZ,
     { quizKey } as JoinQuizRequest
   );
   return response.data;
 };
 
-/**
- * Get all leaderboard entries
- * GET /leaderboard
- */
-export const fetchLeaderboardRaw = async (): Promise<LeaderboardEntry[]> => {
-  const response = await apiClient.get<LeaderboardEntry[]>(
-    BACKEND_CONFIG.ENDPOINTS.LEADERBOARD
-  );
-  return response.data;
-};
-
-/**
- * Get leaderboard for a specific quiz
- * GET /leaderboard/{quizId}
- */
-export const fetchLeaderboardByQuizRaw = async (
-  quizId: string
-): Promise<LeaderboardEntry[]> => {
-  const response = await apiClient.get<LeaderboardEntry[]>(
-    BACKEND_CONFIG.ENDPOINTS.LEADERBOARD_BY_QUIZ(quizId)
-  );
-  return response.data;
-};
-
-/**
- * Submit quiz result to leaderboard
- * POST /leaderboard
- */
-export const submitQuizResultRaw = async (
-  result: SubmitResultRequest
-): Promise<{ message: string }> => {
-  const response = await apiClient.post<{ message: string }>(
-    BACKEND_CONFIG.ENDPOINTS.LEADERBOARD,
-    result
-  );
-  return response.data;
-};
+// ============================================================================
+// LEADERBOARD FUNCTIONS - REMOVED
+// ============================================================================
+// The following leaderboard functions have been removed as the backend
+// leaderboard API is not yet fully functional. When the backend is ready,
+// uncomment and restore these functions.
+//
+// export const fetchLeaderboardRaw = async (): Promise<LeaderboardEntry[]> => { ... };
+// export const fetchLeaderboardByQuizRaw = async (quizId: string): Promise<LeaderboardEntry[]> => { ... };
+// export const submitQuizResultRaw = async (result: SubmitResultRequest): Promise<{ message: string }> => { ... };
+// ============================================================================

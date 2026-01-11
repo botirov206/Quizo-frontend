@@ -45,10 +45,18 @@ export const getSourceBadgeColor = (source: string): string => {
 
 /**
  * Formats time limit for display
- * @param timeLimit - Time limit in minutes
+ * @param timeLimit - Time limit in seconds (normalized from backend)
  * @returns Formatted time string
  */
 export const formatTimeLimit = (timeLimit?: number): string => {
   if (!timeLimit) return 'No time limit';
-  return `${timeLimit} minute${timeLimit !== 1 ? 's' : ''}`;
+  
+  // Convert seconds to minutes for display
+  const minutes = Math.round(timeLimit / 60);
+  
+  if (minutes < 1) {
+    return `${timeLimit} second${timeLimit !== 1 ? 's' : ''}`;
+  }
+  
+  return `${minutes} minute${minutes !== 1 ? 's' : ''}`;
 };

@@ -18,4 +18,6 @@ export {
   normalizeBackendQuestions,
   normalizeBackendQuiz,
   normalizeBackendQuizzes,
+  normalizeBackendQuizListItem,
+  normalizeJoinQuizResponse,
 } from './backendNormalizer';

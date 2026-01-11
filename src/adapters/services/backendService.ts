@@ -3,24 +3,26 @@
  * Composes API calls with normalization for api.kahoot.uz
  * 
  * Single Responsibility: Orchestration of fetch + transform
+ * 
+ * NOTE: Leaderboard functions have been removed as the backend
+ * leaderboard API is not yet fully functional.
  */
 
 import type { StandardQuiz } from '@/types/quiz';
-import type { AdapterResult, SubmitResultRequest, LeaderboardEntry } from '../types';
+import type { AdapterResult, BackendCreateQuizRequest } from '../types';
 import { 
   fetchBackendQuizzesRaw, 
   fetchBackendQuizByIdRaw,
-  fetchLeaderboardRaw,
-  fetchLeaderboardByQuizRaw,
-  submitQuizResultRaw,
   joinQuizRaw,
+  createQuizRaw,
 } from '../api';
-import { normalizeBackendQuiz, normalizeBackendQuizzes } from '../normalizers';
+import { normalizeBackendQuiz, normalizeBackendQuizzes, normalizeJoinQuizResponse } from '../normalizers';
 import { MOCK_QUIZZES, getMockQuizById, MOCK_API_DELAY } from '../mocks';
 import { BACKEND_CONFIG, BACKEND_ERROR_MESSAGES } from '../constants';
 
 /**
  * Fetches and normalizes quizzes from backend
+ * GET /quizzes - Returns list of quizzes without questions
  */
 export const fetchBackendQuizzes = async (): Promise<AdapterResult<StandardQuiz[]>> => {
   try {
@@ -46,6 +48,7 @@ export const fetchBackendQuizzes = async (): Promise<AdapterResult<StandardQuiz[
 
 /**
  * Fetches and normalizes a single quiz by ID
+ * Note: This may not include questions - use joinQuiz with quizKey instead
  */
 export const fetchBackendQuizById = async (
   id: string
@@ -72,14 +75,18 @@ export const fetchBackendQuizById = async (
 };
 
 /**
- * Join a quiz using quiz key
+ * Join a quiz using quiz_key
+ * POST /quiz/join - Returns full quiz with questions
+ * 
+ * This is the primary way to get a playable quiz from the backend
  */
 export const joinQuiz = async (
   quizKey: string
 ): Promise<AdapterResult<StandardQuiz>> => {
   try {
     const data = await joinQuizRaw(quizKey);
-    const quiz = normalizeBackendQuiz(data);
+    // Use the new normalizer that handles the join response format
+    const quiz = normalizeJoinQuizResponse(data);
 
     return {
       data: quiz,
@@ -99,47 +106,37 @@ export const joinQuiz = async (
 };
 
 /**
- * Get all leaderboard entries
+ * Create quiz response type
  */
-export const fetchLeaderboard = async (): Promise<AdapterResult<LeaderboardEntry[]>> => {
-  try {
-    const data = await fetchLeaderboardRaw();
-
-    return {
-      data: data,
-      error: null,
-      success: true,
-    };
-  } catch (error) {
-    const errorMessage = error instanceof Error 
-      ? error.message 
-      : 'Failed to fetch leaderboard';
-    return {
-      data: null,
-      error: errorMessage,
-      success: false,
-    };
-  }
-};
+export interface CreateQuizResult {
+  success: boolean;
+  quizKey: string;
+}
 
 /**
- * Get leaderboard for a specific quiz
+ * Creates a new quiz
+ * POST /quiz
+ * Returns: {"success":true,"quizKey":"BV7AZY"}
  */
-export const fetchQuizLeaderboard = async (
-  quizId: string
-): Promise<AdapterResult<LeaderboardEntry[]>> => {
+export const createBackendQuiz = async (
+  quizData: BackendCreateQuizRequest
+): Promise<AdapterResult<CreateQuizResult>> => {
   try {
-    const data = await fetchLeaderboardByQuizRaw(quizId);
-
+    const response = await createQuizRaw(quizData);
+    
+    // Backend returns {success: true, quizKey: "..."}
     return {
-      data: data,
+      data: {
+        success: response.success,
+        quizKey: response.quizKey,
+      },
       error: null,
       success: true,
     };
   } catch (error) {
     const errorMessage = error instanceof Error 
       ? error.message 
-      : 'Failed to fetch quiz leaderboard';
+      : 'Failed to create quiz';
     return {
       data: null,
       error: errorMessage,
@@ -148,31 +145,17 @@ export const fetchQuizLeaderboard = async (
   }
 };
 
-/**
- * Submit quiz result to leaderboard
- */
-export const submitQuizResult = async (
-  result: SubmitResultRequest
-): Promise<AdapterResult<{ message: string }>> => {
-  try {
-    const data = await submitQuizResultRaw(result);
-
-    return {
-      data: data,
-      error: null,
-      success: true,
-    };
-  } catch (error) {
-    const errorMessage = error instanceof Error 
-      ? error.message 
-      : 'Failed to submit result';
-    return {
-      data: null,
-      error: errorMessage,
-      success: false,
-    };
-  }
-};
+// ============================================================================
+// LEADERBOARD FUNCTIONS - REMOVED
+// ============================================================================
+// The following leaderboard functions have been removed as the backend
+// leaderboard API is not yet fully functional. When the backend is ready,
+// uncomment and restore these functions.
+//
+// export const fetchLeaderboard = async (): Promise<AdapterResult<LeaderboardEntry[]>> => { ... };
+// export const fetchQuizLeaderboard = async (quizId: string): Promise<AdapterResult<LeaderboardEntry[]>> => { ... };
+// export const submitQuizResult = async (result: SubmitResultRequest): Promise<AdapterResult<{ message: string }>> => { ... };
+// ============================================================================
 
 /**
  * Mock implementation for development

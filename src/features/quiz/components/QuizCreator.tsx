@@ -1,30 +1,44 @@
-import { useForm, useFieldArray, useWatch } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+// Switch disabled - backend doesn't support question types yet
+// import { Switch } from '@/components/ui/switch';
 import { quizFormSchema, type QuizFormData } from '../types';
 import { useQuizAutoSave } from '../hooks/useQuizAutoSave';
 import { useCreateQuiz } from '../hooks/useCreateQuiz';
-import { Plus, Trash2, Save } from 'lucide-react';
-import { createOptions, createOption } from '../utils';
-import { DEFAULT_OPTIONS_COUNT, QUIZ_TIMING } from '../constants';
+import { Plus, Trash2, Save, CheckCircle, Copy } from 'lucide-react';
+import { createOptions } from '../utils';
+import { DEFAULT_OPTIONS_COUNT } from '../constants';
 
 export const QuizCreator = () => {
   const navigate = useNavigate();
-  const { saveQuiz, loadQuiz, clearQuiz, lastSaved } = useQuizAutoSave();
+  // NOTE: Auto-save feature disabled - clearQuiz still used on submit
+  const { clearQuiz, lastSaved } = useQuizAutoSave();
   const { createQuiz, loading, error: createError } = useCreateQuiz();
+  
+  // Success dialog state
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [createdQuizKey, setCreatedQuizKey] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const {
     register,
     control,
     handleSubmit,
-    getValues,
-    reset,
     formState: { errors },
   } = useForm<QuizFormData>({
     resolver: zodResolver(quizFormSchema),
@@ -46,61 +60,41 @@ export const QuizCreator = () => {
     },
   });
 
-  const { fields, append, remove, update } = useFieldArray({
+  const { fields, append, remove } = useFieldArray({
     control,
     name: 'questions',
   });
 
   const autoSaveTimerRef = useRef<number | undefined>(undefined);
 
-  // Watch question types to handle toggle changes
-  const watchedQuestions = useWatch({ control, name: 'questions' });
+  // NOTE: Question type toggle disabled - backend doesn't support it yet
+  // When backend is updated, uncomment these:
+  // const watchedQuestions = useWatch({ control, name: 'questions' });
+  // const handleQuestionTypeToggle = useCallback((questionIndex: number, isTrueFalse: boolean) => { ... });
 
-  // Handle question type toggle (MCQ <-> True/False)
-  const handleQuestionTypeToggle = useCallback((questionIndex: number, isTrueFalse: boolean) => {
-    const currentQuestion = fields[questionIndex];
-    const newType = isTrueFalse ? 'true-false' : 'multiple-choice';
-    
-    let newOptions;
-    if (isTrueFalse) {
-      // Switch to True/False - create 2 options with preset text
-      newOptions = [
-        { id: createOption().id, text: 'True' },
-        { id: createOption().id, text: 'False' },
-      ];
-    } else {
-      // Switch to MCQ - create 4 empty options
-      newOptions = createOptions(DEFAULT_OPTIONS_COUNT.STANDARD);
-    }
-
-    update(questionIndex, {
-      ...currentQuestion,
-      type: newType,
-      options: newOptions,
-      correctAnswerId: '', // Reset correct answer when switching types
-    });
-    
-    handleAutoSave();
-  }, [fields, update]);
-
+  // NOTE: Auto-save feature disabled - was causing issues with stale data
+  // When re-enabling, uncomment the useEffect below
   // Load saved draft on mount
-  useEffect(() => {
-    const saved = loadQuiz();
-    if (saved && Object.keys(saved).length > 0) {
-      reset(saved as QuizFormData);
-    }
-  }, [loadQuiz, reset]);
+  // useEffect(() => {
+  //   const saved = loadQuiz();
+  //   if (saved && Object.keys(saved).length > 0) {
+  //     reset(saved as QuizFormData);
+  //   }
+  // }, [loadQuiz, reset]);
 
-  // Auto-save with debounce
+  // NOTE: Auto-save feature disabled - was causing issues with stale data
+  // When re-enabling, uncomment the function body below
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleAutoSave = useCallback(() => {
-    if (autoSaveTimerRef.current) {
-      clearTimeout(autoSaveTimerRef.current);
-    }
-    autoSaveTimerRef.current = setTimeout(() => {
-      const values = getValues();
-      saveQuiz(values);
-    }, QUIZ_TIMING.AUTO_SAVE_DEBOUNCE);
-  }, [getValues, saveQuiz]);
+    // Auto-save disabled
+    // if (autoSaveTimerRef.current) {
+    //   clearTimeout(autoSaveTimerRef.current);
+    // }
+    // autoSaveTimerRef.current = setTimeout(() => {
+    //   const values = getValues();
+    //   saveQuiz(values);
+    // }, QUIZ_TIMING.AUTO_SAVE_DEBOUNCE);
+  }, []);
 
   // Cleanup timer on unmount
   useEffect(() => {
@@ -111,14 +105,35 @@ export const QuizCreator = () => {
     };
   }, []);
 
+  // Handle validation errors (for debugging, can be removed)
+  const onFormError = (_validationErrors: unknown) => {
+    // Validation errors are shown inline in the form
+  };
+
+  const handleCopyQuizKey = useCallback(() => {
+    if (createdQuizKey) {
+      navigator.clipboard.writeText(createdQuizKey);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  }, [createdQuizKey]);
+
+  const handleSuccessClose = useCallback(() => {
+    setShowSuccess(false);
+    setCreatedQuizKey(null);
+    navigate('/dashboard');
+  }, [navigate]);
+
   const onSubmit = async (data: QuizFormData) => {
     try {
-      await createQuiz(data);
+      const result = await createQuiz(data);
       clearQuiz();
-      alert('Quiz created successfully!');
-      navigate('/dashboard');
+      
+      // Show success dialog with quiz key
+      setCreatedQuizKey(result.quizKey);
+      setShowSuccess(true);
     } catch (err) {
-      console.error('Failed to create quiz:', err);
+      // Error is handled by useCreateQuiz hook
     }
   };
 
@@ -146,7 +161,7 @@ export const QuizCreator = () => {
         )}
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={handleSubmit(onSubmit, onFormError)} className="space-y-6">
         {/* Quiz Details */}
         <Card>
           <CardHeader>
@@ -239,7 +254,8 @@ export const QuizCreator = () => {
           )}
 
           {fields.map((field, questionIndex) => {
-            const isTrueFalse = watchedQuestions?.[questionIndex]?.type === 'true-false';
+            // NOTE: Type toggle disabled - backend doesn't support question types yet
+            // const isTrueFalse = watchedQuestions?.[questionIndex]?.type === 'true-false';
             
             return (
             <Card key={field.id}>
@@ -247,6 +263,11 @@ export const QuizCreator = () => {
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg">Question {questionIndex + 1}</CardTitle>
                   <div className="flex items-center gap-4">
+                    {/* 
+                      MCQ/True-False Toggle - DISABLED
+                      Backend API doesn't support question type parameter yet.
+                      When backend is updated, uncomment this section.
+                      
                     <div className="flex items-center gap-2">
                       <Label htmlFor={`question-type-${questionIndex}`} className="text-sm text-muted-foreground">
                         MCQ
@@ -260,6 +281,7 @@ export const QuizCreator = () => {
                         True/False
                       </Label>
                     </div>
+                    */}
                     {fields.length > 1 && (
                       <Button
                         type="button"
@@ -360,6 +382,47 @@ export const QuizCreator = () => {
           <p className="text-sm text-destructive text-center">{createError}</p>
         )}
       </form>
+
+      {/* Success Dialog */}
+      <AlertDialog open={showSuccess} onOpenChange={setShowSuccess}>
+        <AlertDialogContent className="sm:max-w-md">
+          <AlertDialogHeader>
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+              <CheckCircle className="h-6 w-6 text-green-600" />
+            </div>
+            <AlertDialogTitle className="text-center">Quiz Created Successfully!</AlertDialogTitle>
+            <AlertDialogDescription className="text-center">
+              Your quiz has been created. Share the quiz key with your students so they can join.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          
+          <div className="flex items-center justify-center gap-2 my-4">
+            <div className="flex-1 rounded-lg bg-muted px-4 py-3 text-center">
+              <p className="text-xs text-muted-foreground mb-1">Quiz Key</p>
+              <p className="text-2xl font-bold tracking-widest">{createdQuizKey}</p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={handleCopyQuizKey}
+              className="h-12 w-12"
+            >
+              <Copy className="h-4 w-4" />
+            </Button>
+          </div>
+          
+          {copied && (
+            <p className="text-sm text-green-600 text-center">Copied to clipboard!</p>
+          )}
+
+          <AlertDialogFooter className="sm:justify-center">
+            <AlertDialogAction onClick={handleSuccessClose} className="w-full sm:w-auto">
+              Go to Dashboard
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

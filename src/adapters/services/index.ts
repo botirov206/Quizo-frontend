@@ -18,7 +18,10 @@ export {
   fetchQuizzesAuto,
   fetchQuizByIdAuto,
   joinQuiz,
-  fetchLeaderboard,
-  fetchQuizLeaderboard,
-  submitQuizResult,
+  createBackendQuiz,
+  type CreateQuizResult,
+  // Leaderboard functions removed - backend not ready
+  // fetchLeaderboard,
+  // fetchQuizLeaderboard,
+  // submitQuizResult,
 } from './backendService';

@@ -27,11 +27,14 @@ export const OPENTDB_CONFIG = {
 
 export const BACKEND_CONFIG = {
   ENDPOINTS: {
+    // NOTE: Backend uses /quiz for list, ideally should be /quizzes
+    // When backend is updated, change to '/quizzes'
     QUIZZES: '/quiz',
     QUIZ_BY_ID: (id: string) => `/quiz/${id}`,
-    CREATE_QUIZ: '/quiz',
+    CREATE_QUIZ: '/quiz', // POST to /quiz creates a new quiz
     JOIN_QUIZ: '/quiz/join',
     USER_QUIZZES: '/quiz/my',
+    // Leaderboard endpoints - currently not functional
     LEADERBOARD: '/leaderboard',
     LEADERBOARD_BY_QUIZ: (quizId: string) => `/leaderboard/${quizId}`,
     USER_PROFILE: (userId: string) => `/me/${userId}`,

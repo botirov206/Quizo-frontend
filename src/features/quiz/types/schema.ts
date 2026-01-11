@@ -22,7 +22,7 @@ export const quizFormSchema = z.object({
   category: z.string().min(1, 'Category is required'),
   difficulty: z.enum(['easy', 'medium', 'hard']),
   timeLimit: z.number().min(5, 'Minimum 5 minutes').max(180, 'Maximum 180 minutes'),
-  questions: z.array(questionSchema).min(5, 'Quiz must have at least 5 questions'),
+  questions: z.array(questionSchema).min(1, 'Quiz must have at least 1 question'),
 });
 
 export type QuestionFormData = z.infer<typeof questionSchema>;
