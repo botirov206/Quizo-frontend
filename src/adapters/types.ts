@@ -1,0 +1,118 @@
+/**
+ * Adapter Types
+ * Defines interfaces for external API responses and adapter contracts
+ */
+
+import type { StandardQuiz, StandardQuestion } from '@/types/quiz';
+
+// ============================================================================
+// OpenTDB API Types
+// ============================================================================
+
+export type OpenTDBResponseCode = 0 | 1 | 2 | 3 | 4 | 5;
+
+export const OPENTDB_RESPONSE_CODES = {
+  SUCCESS: 0,
+  NO_RESULTS: 1,
+  INVALID_PARAMETER: 2,
+  TOKEN_NOT_FOUND: 3,
+  TOKEN_EMPTY: 4,
+  RATE_LIMIT: 5,
+} as const;
+
+export type OpenTDBDifficulty = 'easy' | 'medium' | 'hard';
+export type OpenTDBType = 'multiple' | 'boolean';
+
+export interface OpenTDBQuestion {
+  type: OpenTDBType;
+  difficulty: OpenTDBDifficulty;
+  category: string;
+  question: string; // HTML encoded
+  correct_answer: string; // HTML encoded
+  incorrect_answers: string[]; // HTML encoded
+}
+
+export interface OpenTDBResponse {
+  response_code: OpenTDBResponseCode;
+  results: OpenTDBQuestion[];
+}
+
+export interface OpenTDBCategory {
+  id: number;
+  name: string;
+}
+
+export interface OpenTDBCategoriesResponse {
+  trivia_categories: OpenTDBCategory[];
+}
+
+// ============================================================================
+// Backend API Types (Custom Backend)
+// ============================================================================
+
+export interface BackendQuestion {
+  id: string;
+  text: string;
+  type: 'multiple-choice' | 'true-false';
+  options: Array<{
+    id: string;
+    text: string;
+  }>;
+  correctAnswerId: string;
+  explanation?: string;
+}
+
+export interface BackendQuiz {
+  id: string;
+  title: string;
+  description?: string;
+  category: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  timeLimit: number; // in minutes
+  questions: BackendQuestion[];
+  createdBy: {
+    id: string;
+    name: string;
+  };
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface BackendQuizzesResponse {
+  quizzes: BackendQuiz[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface BackendQuizResponse {
+  quiz: BackendQuiz;
+}
+
+// ============================================================================
+// Adapter Contracts
+// ============================================================================
+
+export interface QuizFetchOptions {
+  amount?: number;
+  category?: number;
+  difficulty?: OpenTDBDifficulty;
+  type?: OpenTDBType;
+}
+
+export interface AdapterResult<T> {
+  data: T | null;
+  error: string | null;
+  success: boolean;
+}
+
+export interface QuizAdapter {
+  fetchQuizzes: (options?: QuizFetchOptions) => Promise<AdapterResult<StandardQuiz[]>>;
+  fetchQuizById?: (id: string) => Promise<AdapterResult<StandardQuiz>>;
+}
+
+// ============================================================================
+// Re-exports for convenience
+// ============================================================================
+
+export type { StandardQuiz, StandardQuestion };
