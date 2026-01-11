@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { useRegister } from '../hooks/useRegister';
 import { useLogin } from '../hooks/useLogin';
@@ -13,6 +13,7 @@ import { createPasteHandler } from '../utils';
 
 export const RegisterForm = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { loading, error, handleRegister, clearError } = useRegister();
   const { handleGoogleLogin } = useLogin();
   const [firstName, setFirstName] = useState('');
@@ -22,6 +23,10 @@ export const RegisterForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [googleError, setGoogleError] = useState('');
 
+  // Determine role from URL path - if path includes '/teacher', set role to 'teacher'
+  const isTeacherRegistration = location.pathname.includes('/teacher');
+  const defaultRole: 'student' | 'teacher' = isTeacherRegistration ? 'teacher' : 'student';
+
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     const result = await handleRegister({
@@ -30,12 +35,12 @@ export const RegisterForm = () => {
       email,
       password,
       confirmPassword: password,
-      role: 'student',
+      role: defaultRole,
     });
     if (result.success) {
       navigate('/dashboard');
     }
-  }, [firstName, lastName, email, password, handleRegister, navigate]);
+  }, [firstName, lastName, email, password, handleRegister, navigate, defaultRole]);
 
   const handleInputPaste = createPasteHandler(MAX_INPUT_LENGTH);
   const handleNamePaste = createPasteHandler(MAX_NAME_LENGTH);
@@ -74,8 +79,14 @@ export const RegisterForm = () => {
     <div className="flex items-center justify-center min-h-screen bg-background">
       <Card className="w-full max-w-sm">
         <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-2xl">Create your account</CardTitle>
-          <CardDescription>Welcome! Please fill in the details to get started.</CardDescription>
+          <CardTitle className="text-2xl">
+            {isTeacherRegistration ? 'Register as Teacher' : 'Create your account'}
+          </CardTitle>
+          <CardDescription>
+            {isTeacherRegistration 
+              ? 'Join as an educator and start creating engaging quizzes for your students.'
+              : 'Welcome! Please fill in the details to get started.'}
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Google OAuth Button */}

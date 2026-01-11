@@ -36,6 +36,7 @@ const AppRoutes = () => {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={!user ? <LoginForm /> : <Navigate to="/dashboard" />} />
       <Route path="/register" element={!user ? <RegisterForm /> : <Navigate to="/dashboard" />} />
+      <Route path="/register/teacher" element={!user ? <RegisterForm /> : <Navigate to="/dashboard" />} />
       <Route path="/forgot-password" element={!user ? <ForgotPasswordForm /> : <Navigate to="/dashboard" />} />
 
       {/* Protected Routes */}
