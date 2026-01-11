@@ -4,10 +4,15 @@ import { defineConfig } from "vite"
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(),],
+  plugins: [react()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+  },
+  preview: {
+    host: true,
+    port: 3000,
+    allowedHosts: ["kahoot.uz", "www.kahoot.uz"],
   },
 })
