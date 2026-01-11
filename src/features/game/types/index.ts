@@ -24,6 +24,7 @@ export type GameAction =
   | { type: 'NEXT_QUESTION' }
   | { type: 'TICK_TIMER' }
   | { type: 'FINISH_QUIZ' }
+  | { type: 'END_QUIZ_EARLY' }
   | { type: 'RESET_GAME' };
 
 export interface UseGameEngineReturn {
@@ -32,6 +33,7 @@ export interface UseGameEngineReturn {
   selectAnswer: (answerId: string) => void;
   nextQuestion: () => void;
   resetGame: () => void;
+  endQuizEarly: () => void;
   currentQuestion: ReturnType<typeof getCurrentQuestion>;
 }
 

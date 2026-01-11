@@ -42,7 +42,7 @@ export const RegisterForm = () => {
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
       <Card className="w-full max-w-sm">
-        <CardHeader className="space-y-1">
+        <CardHeader className="space-y-1 text-center">
           <CardTitle className="text-2xl">Create your account</CardTitle>
           <CardDescription>Welcome! Please fill in the details to get started.</CardDescription>
         </CardHeader>

@@ -1,5 +1,5 @@
 import * as React from "react"
-import { GraduationCap, Home, BookOpen, Users, Settings, LifeBuoy, Sparkles } from "lucide-react"
+import { GraduationCap, Home, BookOpen, Users, Settings, LifeBuoy, Sparkles, PlusCircle, BarChart3, ClipboardList } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
 import { NavSecondary } from "@/components/nav-secondary"
@@ -14,45 +14,78 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar"
+import { useAuth } from "@/context/AuthContext"
 
-const data = {
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "/dashboard",
-      icon: Home,
-    },
-    {
-      title: "Explore",
-      url: "/explore",
-      icon: Sparkles,
-    },
-    {
-      title: "Quizzes",
-      url: "/quizzes",
-      icon: BookOpen,
-    },
-    {
-      title: "Classrooms",
-      url: "/classrooms",
-      icon: Users,
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Settings",
-      url: "/settings",
-      icon: Settings,
-    },
-    {
-      title: "Help & Support",
-      url: "/support",
-      icon: LifeBuoy,
-    },
-  ],
-}
+// Base navigation items (for all users)
+const baseNavItems = [
+  {
+    title: "Dashboard",
+    url: "/dashboard",
+    icon: Home,
+  },
+  {
+    title: "Explore",
+    url: "/explore",
+    icon: Sparkles,
+  },
+  {
+    title: "Classrooms",
+    url: "/classrooms",
+    icon: Users,
+  },
+]
+
+// Teacher-specific navigation items
+const teacherNavItems = [
+  {
+    title: "My Quizzes",
+    url: "/quizzes",
+    icon: ClipboardList,
+  },
+  {
+    title: "Create Quiz",
+    url: "/quiz/create",
+    icon: PlusCircle,
+  },
+  {
+    title: "Analytics",
+    url: "/analytics",
+    icon: BarChart3,
+  },
+]
+
+// Student-specific navigation items
+const studentNavItems = [
+  {
+    title: "My Quizzes",
+    url: "/quizzes",
+    icon: BookOpen,
+  },
+]
+
+const navSecondary = [
+  {
+    title: "Settings",
+    url: "/settings",
+    icon: Settings,
+  },
+  {
+    title: "Help & Support",
+    url: "/support",
+    icon: LifeBuoy,
+  },
+]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { user } = useAuth()
+
+  // Build navigation based on user role
+  const navMain = React.useMemo(() => {
+    const isTeacher = user?.role === 'teacher'
+    const roleItems = isTeacher ? teacherNavItems : studentNavItems
+    
+    return [...baseNavItems, ...roleItems]
+  }, [user?.role])
   return (
     <Sidebar style={{ border: 'none' }} collapsible="icon" {...props}>
       <SidebarHeader>
@@ -73,8 +106,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        <NavMain items={navMain} />
+        <NavSecondary items={navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
         <NavUser />

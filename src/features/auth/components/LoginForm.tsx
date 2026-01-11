@@ -33,7 +33,7 @@ export const LoginForm = () => {
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
       <Card className="w-full max-w-sm">
-        <CardHeader className="space-y-1">
+        <CardHeader className="space-y-1 text-center">
           <CardTitle className="text-2xl">Sign in to EduQuiz</CardTitle>
           <CardDescription>Welcome back! Please sign in to continue</CardDescription>
         </CardHeader>

@@ -33,8 +33,9 @@ export const DEFAULT_QUESTION = {
 } as const;
 
 export const DEFAULT_OPTIONS_COUNT = {
-  INITIAL: 2,
+  INITIAL: 4,
   STANDARD: 4,
+  TRUE_FALSE: 2,
 } as const;
 
 // Storage keys

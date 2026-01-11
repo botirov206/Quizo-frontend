@@ -5,6 +5,7 @@ import {
   handleSelectAnswer,
   handleNextQuestion,
   handleTickTimer,
+  handleEndQuizEarly,
 } from './actions';
 
 export function gameReducer(state: GameState, action: GameAction): GameState {
@@ -26,6 +27,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         ...state,
         status: 'FINISHED',
       };
+
+    case 'END_QUIZ_EARLY':
+      return handleEndQuizEarly(state);
 
     case 'RESET_GAME':
       return INITIAL_GAME_STATE;

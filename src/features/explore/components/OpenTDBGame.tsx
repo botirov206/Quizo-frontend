@@ -3,15 +3,27 @@
  * Game engine for OpenTDB quizzes with difficulty-based scoring
  */
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Play, Home, RotateCcw, Trophy, Clock, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
+import { Loader2, Play, Home, RotateCcw, Trophy, Clock, CheckCircle2, XCircle, AlertCircle, StopCircle } from 'lucide-react';
 import { fetchOpenTDBQuiz, type OpenTDBDifficulty } from '@/adapters';
 import type { StandardQuiz } from '@/types/quiz';
 import { useQuizResults } from '../hooks/useQuizResults';
 import { DIFFICULTY_POINTS, type QuizResult } from '../types';
+import { QuizWithLeaderboard, type LeaderboardEntry } from '@/features/game';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 type GameStatus = 'LOADING' | 'READY' | 'PLAYING' | 'FEEDBACK' | 'FINISHED' | 'ERROR' | 'RATE_LIMITED';
 
@@ -43,6 +55,7 @@ export const OpenTDBGame = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { saveResult } = useQuizResults();
+  const [showEndDialog, setShowEndDialog] = useState(false);
   
   // Prevent double fetch from React Strict Mode
   const fetchedRef = useRef(false);
@@ -280,6 +293,48 @@ export const OpenTDBGame = () => {
     fetchQuiz();
   }, [timePerQuestion, fetchQuiz]);
 
+  // Mock leaderboard data for the category
+  // TODO: Replace with real API call to fetch category leaderboard
+  const leaderboardEntries: LeaderboardEntry[] = useMemo(() => [
+    { id: '1', name: 'Alex Johnson', firstName: 'Alex', lastName: 'Johnson', points: 950, timeSpent: 120 },
+    { id: '2', name: 'Sarah Smith', firstName: 'Sarah', lastName: 'Smith', points: 920, timeSpent: 135 },
+    { id: '3', name: 'Mike Brown', firstName: 'Mike', lastName: 'Brown', points: 880, timeSpent: 110 },
+    { id: '4', name: 'Emily Davis', firstName: 'Emily', lastName: 'Davis', points: 850, timeSpent: 145 },
+    { id: '5', name: 'Chris Wilson', firstName: 'Chris', lastName: 'Wilson', points: 820, timeSpent: 130 },
+    { id: '6', name: 'Lisa Taylor', firstName: 'Lisa', lastName: 'Taylor', points: 780, timeSpent: 155 },
+    { id: '7', name: 'David Lee', firstName: 'David', lastName: 'Lee', points: 750, timeSpent: 140 },
+  ], []);
+
+  // End quiz early - marks remaining questions as incorrect
+  const handleEndQuizEarly = useCallback(() => {
+    setState(prev => {
+      if (!prev.quiz) return prev;
+      
+      // Get remaining unanswered questions
+      const remainingQuestions = prev.quiz.questions.slice(prev.currentQuestionIndex);
+      const unansweredAnswers = remainingQuestions.map(q => ({
+        questionId: q.id,
+        questionText: q.text,
+        selectedAnswer: '',
+        correctAnswer: q.correctAnswerId,
+        isCorrect: false,
+        timeSpent: 0,
+        pointsEarned: 0,
+      }));
+      
+      const updatedState = {
+        ...prev,
+        answers: [...prev.answers, ...unansweredAnswers],
+        status: 'FINISHED' as GameStatus,
+      };
+      
+      // Save result
+      saveQuizResult(updatedState);
+      
+      return updatedState;
+    });
+  }, []);
+
   // Retry after rate limit
   const handleRetryAfterRateLimit = useCallback(() => {
     fetchedRef.current = false;
@@ -406,94 +461,138 @@ export const OpenTDBGame = () => {
   if ((state.status === 'PLAYING' || state.status === 'FEEDBACK') && currentQuestion && state.quiz) {
     const progress = ((state.currentQuestionIndex + 1) / state.quiz.questions.length) * 100;
     const timerPercentage = (state.timeLeft / timePerQuestion) * 100;
+    const remainingQuestions = state.quiz.questions.length - state.currentQuestionIndex - 1;
 
     return (
       <div className="min-h-screen bg-gradient-to-br from-background to-muted p-4">
-        <div className="max-w-2xl mx-auto space-y-6">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <div className="text-sm font-medium">
-              Question {state.currentQuestionIndex + 1} of {state.quiz.questions.length}
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Trophy className="h-4 w-4 text-yellow-500" />
-                <span className="font-bold">{state.score}</span>
+        <QuizWithLeaderboard
+          leaderboardEntries={leaderboardEntries}
+          showLeaderboard={true}
+          leaderboardTitle="Category Rankings"
+          categoryId={categoryId.toString()}
+        >
+          <div className="space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <div className="text-sm font-medium">
+                Question {state.currentQuestionIndex + 1} of {state.quiz.questions.length}
               </div>
-              <div className={`flex items-center gap-2 ${state.timeLeft <= 5 ? 'text-red-500' : ''}`}>
-                <Clock className="h-4 w-4" />
-                <span className="font-bold">{state.timeLeft}s</span>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <Trophy className="h-4 w-4 text-yellow-500" />
+                  <span className="font-bold">{state.score}</span>
+                </div>
+                <div className={`flex items-center gap-2 ${state.timeLeft <= 5 ? 'text-red-500' : ''}`}>
+                  <Clock className="h-4 w-4" />
+                  <span className="font-bold">{state.timeLeft}s</span>
+                </div>
+                <AlertDialog open={showEndDialog} onOpenChange={setShowEndDialog}>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" size="sm">
+                      <StopCircle className="h-4 w-4 mr-2" />
+                      End Quiz
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>End Quiz Early?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to end the quiz now?
+                        {remainingQuestions > 0 && (
+                          <span className="block mt-2 font-medium text-foreground">
+                            {remainingQuestions} remaining question{remainingQuestions !== 1 ? 's' : ''} will be marked as incorrect.
+                          </span>
+                        )}
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Continue Quiz</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => {
+                          handleEndQuizEarly();
+                          setShowEndDialog(false);
+                        }}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        End Quiz
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             </div>
+
+            {/* Progress bar */}
+            <div className="h-2 bg-muted rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-primary transition-all duration-300"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+
+            {/* Timer bar */}
+            <div className="h-1 bg-muted rounded-full overflow-hidden">
+              <div 
+                className={`h-full transition-all duration-1000 ${
+                  state.timeLeft <= 5 ? 'bg-red-500' : 'bg-green-500'
+                }`}
+                style={{ width: `${timerPercentage}%` }}
+              />
+            </div>
+
+            {/* Question Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl leading-relaxed">
+                  {currentQuestion.text}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {/* 2x2 Grid for answer options - consistent with GameEngine */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {currentQuestion.options.map((option, index) => {
+                    const isSelected = state.selectedAnswer === option;
+                    const isCorrect = option === currentQuestion.correctAnswerId;
+                    const showResult = state.status === 'FEEDBACK';
+
+                    let buttonClass = 'w-full justify-start text-left h-auto min-h-[60px] py-4 px-4';
+                    
+                    if (showResult) {
+                      if (isCorrect) {
+                        buttonClass += ' bg-green-100 border-green-500 text-green-700 hover:bg-green-100';
+                      } else if (isSelected && !isCorrect) {
+                        buttonClass += ' bg-red-100 border-red-500 text-red-700 hover:bg-red-100';
+                      }
+                    }
+
+                    return (
+                      <Button
+                        key={index}
+                        variant="outline"
+                        className={buttonClass}
+                        onClick={() => handleSelectAnswer(option)}
+                        disabled={state.status === 'FEEDBACK'}
+                      >
+                        <span className="flex items-center gap-3 w-full">
+                          <span className="flex-shrink-0 w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm font-medium">
+                            {String.fromCharCode(65 + index)}
+                          </span>
+                          <span className="flex-grow">{option}</span>
+                          {showResult && isCorrect && (
+                            <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
+                          )}
+                          {showResult && isSelected && !isCorrect && (
+                            <XCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
+                          )}
+                        </span>
+                      </Button>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
           </div>
-
-          {/* Progress bar */}
-          <div className="h-2 bg-muted rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-primary transition-all duration-300"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-
-          {/* Timer bar */}
-          <div className="h-1 bg-muted rounded-full overflow-hidden">
-            <div 
-              className={`h-full transition-all duration-1000 ${
-                state.timeLeft <= 5 ? 'bg-red-500' : 'bg-green-500'
-              }`}
-              style={{ width: `${timerPercentage}%` }}
-            />
-          </div>
-
-          {/* Question Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-xl leading-relaxed">
-                {currentQuestion.text}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {currentQuestion.options.map((option, index) => {
-                const isSelected = state.selectedAnswer === option;
-                const isCorrect = option === currentQuestion.correctAnswerId;
-                const showResult = state.status === 'FEEDBACK';
-
-                let buttonClass = 'w-full justify-start text-left h-auto py-4 px-6';
-                
-                if (showResult) {
-                  if (isCorrect) {
-                    buttonClass += ' bg-green-100 border-green-500 text-green-700 hover:bg-green-100';
-                  } else if (isSelected && !isCorrect) {
-                    buttonClass += ' bg-red-100 border-red-500 text-red-700 hover:bg-red-100';
-                  }
-                }
-
-                return (
-                  <Button
-                    key={index}
-                    variant="outline"
-                    className={buttonClass}
-                    onClick={() => handleSelectAnswer(option)}
-                    disabled={state.status === 'FEEDBACK'}
-                  >
-                    <span className="flex items-center gap-3 w-full">
-                      <span className="flex-shrink-0 w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm font-medium">
-                        {String.fromCharCode(65 + index)}
-                      </span>
-                      <span className="flex-grow">{option}</span>
-                      {showResult && isCorrect && (
-                        <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
-                      )}
-                      {showResult && isSelected && !isCorrect && (
-                        <XCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
-                      )}
-                    </span>
-                  </Button>
-                );
-              })}
-            </CardContent>
-          </Card>
-        </div>
+        </QuizWithLeaderboard>
       </div>
     );
   }
@@ -507,15 +606,21 @@ export const OpenTDBGame = () => {
 
     return (
       <div className="min-h-screen bg-gradient-to-br from-background to-muted p-4">
-        <div className="max-w-2xl mx-auto space-y-6">
-          <Card>
-            <CardHeader className="text-center pb-2">
-              <div className="text-6xl mb-4">
-                {percentage >= 80 ? '🏆' : percentage >= 60 ? '🎉' : percentage >= 40 ? '💪' : '📚'}
-              </div>
-              <CardTitle className="text-3xl">Quiz Complete!</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
+        <QuizWithLeaderboard
+          leaderboardEntries={leaderboardEntries}
+          showLeaderboard={true}
+          leaderboardTitle="Category Rankings"
+          categoryId={categoryId.toString()}
+        >
+          <div className="space-y-6">
+            <Card>
+              <CardHeader className="text-center pb-2">
+                <div className="text-6xl mb-4">
+                  {percentage >= 80 ? '🏆' : percentage >= 60 ? '🎉' : percentage >= 40 ? '💪' : '📚'}
+                </div>
+                <CardTitle className="text-3xl">Quiz Complete!</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
               {/* Score summary */}
               <div className="grid grid-cols-2 gap-4 text-center">
                 <div className="bg-primary/10 rounded-xl p-6">
@@ -629,7 +734,8 @@ export const OpenTDBGame = () => {
               ))}
             </CardContent>
           </Card>
-        </div>
+          </div>
+        </QuizWithLeaderboard>
       </div>
     );
   }

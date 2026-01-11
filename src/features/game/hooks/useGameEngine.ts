@@ -55,12 +55,17 @@ export const useGameEngine = (): UseGameEngineReturn => {
     dispatch({ type: 'RESET_GAME' });
   }, []);
 
+  const endQuizEarly = useCallback(() => {
+    dispatch({ type: 'END_QUIZ_EARLY' });
+  }, []);
+
   return {
     state,
     startQuiz,
     selectAnswer,
     nextQuestion,
     resetGame,
+    endQuizEarly,
     currentQuestion: getCurrentQuestion(state),
   };
 };

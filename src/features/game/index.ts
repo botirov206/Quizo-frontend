@@ -4,6 +4,9 @@ export { QuestionCard } from './components/QuestionCard';
 export { Timer } from './components/Timer';
 export { ProgressBar } from './components/ProgressBar';
 export { ScoreBoard } from './components/ScoreBoard';
+export { JoinPage } from './components/JoinPage';
+export { Leaderboard } from './components/Leaderboard';
+export { QuizWithLeaderboard } from './components/QuizWithLeaderboard';
 
 // Public Hooks
 export { useGameEngine } from './hooks/useGameEngine';
@@ -20,3 +23,5 @@ export { gameReducer } from './reducers/gameReducer';
 
 // Public Types
 export type { GameState, GameStatus, GameAction, UseGameEngineReturn } from './types';
+export type { LeaderboardEntry, LeaderboardProps } from './types/leaderboard';
+export { getInitials, formatTime } from './types/leaderboard';

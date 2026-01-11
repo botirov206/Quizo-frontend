@@ -1,14 +1,25 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Play } from 'lucide-react';
+import { Loader2, Play, StopCircle } from 'lucide-react';
 import { useGameEngine } from '../hooks/useGameEngine';
 import { QuestionCard } from './QuestionCard';
 import { Timer } from './Timer';
 import { ProgressBar } from './ProgressBar';
 import { ScoreBoard } from './ScoreBoard';
 import type { StandardQuiz } from '@/types/quiz';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 // Mock function to fetch quiz - replace with real API call
 const fetchQuizById = async (id: string): Promise<StandardQuiz> => {
@@ -84,7 +95,8 @@ const fetchQuizById = async (id: string): Promise<StandardQuiz> => {
 export const GameEngine = () => {
   const { quizId } = useParams<{ quizId: string }>();
   const navigate = useNavigate();
-  const { state, startQuiz, selectAnswer, resetGame, currentQuestion } = useGameEngine();
+  const { state, startQuiz, selectAnswer, resetGame, endQuizEarly, currentQuestion } = useGameEngine();
+  const [showEndDialog, setShowEndDialog] = useState(false);
 
   useEffect(() => {
     if (quizId && state.status === 'IDLE') {
@@ -170,16 +182,52 @@ export const GameEngine = () => {
     const isAnswered = state.status === 'FEEDBACK';
     const selectedAnswer = state.answers[currentQuestion.id];
     const totalTime = state.quiz.timeLimit || 30;
+    const remainingQuestions = state.quiz.questions.length - state.currentQuestionIndex - 1;
 
     return (
       <div className="container max-w-4xl mx-auto py-8 space-y-6">
         {/* Header with Progress and Timer */}
         <Card>
           <CardContent className="pt-6 space-y-4">
-            <ProgressBar
-              current={state.currentQuestionIndex + 1}
-              total={state.quiz.questions.length}
-            />
+            <div className="flex items-center justify-between">
+              <ProgressBar
+                current={state.currentQuestionIndex + 1}
+                total={state.quiz.questions.length}
+              />
+              <AlertDialog open={showEndDialog} onOpenChange={setShowEndDialog}>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" size="sm" className="ml-4">
+                    <StopCircle className="h-4 w-4 mr-2" />
+                    End Quiz
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>End Quiz Early?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to end the quiz now? 
+                      {remainingQuestions > 0 && (
+                        <span className="block mt-2 font-medium text-foreground">
+                          {remainingQuestions} remaining question{remainingQuestions !== 1 ? 's' : ''} will be marked as incorrect.
+                        </span>
+                      )}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Continue Quiz</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => {
+                        endQuizEarly();
+                        setShowEndDialog(false);
+                      }}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      End Quiz
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
             {state.status === 'PLAYING' && (
               <Timer timeLeft={state.timeLeft} totalTime={totalTime} />
             )}

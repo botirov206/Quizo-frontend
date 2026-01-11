@@ -6,7 +6,7 @@ import { LandingPage } from '@/pages/LandingPage';
 import { ForgotPasswordForm } from '@/features/auth/components/ForgotPasswordForm';
 import { Dashboard, QuizzesPage } from '@/features/dashboard';
 import { QuizCreator } from '@/features/quiz';
-import { GameEngine } from '@/features/game';
+import { GameEngine, JoinPage } from '@/features/game';
 import { CategoryBrowser, OpenTDBGame } from '@/features/explore';
 import { ClassroomPage } from '@/features/classroom';
 
@@ -19,7 +19,16 @@ function App() {
 }
 
 const AppRoutes = () => {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
+
+  // Show loading state while auth is being resolved
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
+    );
+  }
 
   return (
     <Routes>
@@ -31,6 +40,7 @@ const AppRoutes = () => {
 
       {/* Protected Routes */}
       <Route path="/dashboard" element={user ? <Dashboard /> : <Navigate to="/login" />} />
+      <Route path="/join" element={user ? <JoinPage /> : <Navigate to="/login" />} />
       <Route path="/quizzes" element={user ? <QuizzesPage /> : <Navigate to="/login" />} />
       <Route path="/quiz/create" element={user ? <QuizCreator /> : <Navigate to="/login" />} />
       <Route path="/quiz/:quizId/play" element={user ? <GameEngine /> : <Navigate to="/login" />} />

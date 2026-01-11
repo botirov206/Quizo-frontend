@@ -1,4 +1,4 @@
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm, useFieldArray, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -6,11 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
 import { quizFormSchema, type QuizFormData } from '../types';
 import { useQuizAutoSave } from '../hooks/useQuizAutoSave';
 import { useCreateQuiz } from '../hooks/useCreateQuiz';
 import { Plus, Trash2, Save } from 'lucide-react';
-import { createOptions } from '../utils';
+import { createOptions, createOption } from '../utils';
 import { DEFAULT_OPTIONS_COUNT, QUIZ_TIMING } from '../constants';
 
 export const QuizCreator = () => {
@@ -45,12 +46,42 @@ export const QuizCreator = () => {
     },
   });
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, update } = useFieldArray({
     control,
     name: 'questions',
   });
 
   const autoSaveTimerRef = useRef<number | undefined>(undefined);
+
+  // Watch question types to handle toggle changes
+  const watchedQuestions = useWatch({ control, name: 'questions' });
+
+  // Handle question type toggle (MCQ <-> True/False)
+  const handleQuestionTypeToggle = useCallback((questionIndex: number, isTrueFalse: boolean) => {
+    const currentQuestion = fields[questionIndex];
+    const newType = isTrueFalse ? 'true-false' : 'multiple-choice';
+    
+    let newOptions;
+    if (isTrueFalse) {
+      // Switch to True/False - create 2 options with preset text
+      newOptions = [
+        { id: createOption().id, text: 'True' },
+        { id: createOption().id, text: 'False' },
+      ];
+    } else {
+      // Switch to MCQ - create 4 empty options
+      newOptions = createOptions(DEFAULT_OPTIONS_COUNT.STANDARD);
+    }
+
+    update(questionIndex, {
+      ...currentQuestion,
+      type: newType,
+      options: newOptions,
+      correctAnswerId: '', // Reset correct answer when switching types
+    });
+    
+    handleAutoSave();
+  }, [fields, update]);
 
   // Load saved draft on mount
   useEffect(() => {
@@ -201,31 +232,45 @@ export const QuizCreator = () => {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold">Questions ({fields.length})</h2>
-            <Button type="button" onClick={addQuestion} variant="outline">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Question
-            </Button>
           </div>
 
           {errors.questions && (
             <p className="text-sm text-destructive">{errors.questions.message}</p>
           )}
 
-          {fields.map((field, questionIndex) => (
+          {fields.map((field, questionIndex) => {
+            const isTrueFalse = watchedQuestions?.[questionIndex]?.type === 'true-false';
+            
+            return (
             <Card key={field.id}>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg">Question {questionIndex + 1}</CardTitle>
-                  {fields.length > 1 && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => remove(questionIndex)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor={`question-type-${questionIndex}`} className="text-sm text-muted-foreground">
+                        MCQ
+                      </Label>
+                      <Switch
+                        id={`question-type-${questionIndex}`}
+                        checked={isTrueFalse}
+                        onCheckedChange={(checked: boolean) => handleQuestionTypeToggle(questionIndex, checked)}
+                      />
+                      <Label htmlFor={`question-type-${questionIndex}`} className="text-sm text-muted-foreground">
+                        True/False
+                      </Label>
+                    </div>
+                    {fields.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => remove(questionIndex)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -285,7 +330,19 @@ export const QuizCreator = () => {
                 </div>
               </CardContent>
             </Card>
-          ))}
+          );
+          })}
+
+          {/* Add Question Button - at bottom for better UX */}
+          <Button 
+            type="button" 
+            onClick={addQuestion} 
+            variant="outline" 
+            className="w-full border-dashed"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add Question
+          </Button>
         </div>
 
         {/* Submit */}
