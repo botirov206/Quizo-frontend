@@ -41,12 +41,16 @@ export {
   fetchOpenTDBQuiz,
   fetchOpenTDBCategories,
   fetchMultipleOpenTDBQuizzes,
-  // Backend
+  // Backend (api.kahoot.uz)
   fetchBackendQuizzes,
   fetchBackendQuizById,
   fetchBackendQuizzesMock,
   fetchQuizzesAuto,
   fetchQuizByIdAuto,
+  joinQuiz,
+  fetchLeaderboard,
+  fetchQuizLeaderboard,
+  submitQuizResult,
 } from './services';
 
 // ============================================================================
@@ -61,6 +65,10 @@ export {
   resetOpenTDBToken,
   fetchBackendQuizzesRaw,
   fetchBackendQuizByIdRaw,
+  joinQuizRaw,
+  fetchLeaderboardRaw,
+  fetchLeaderboardByQuizRaw,
+  submitQuizResultRaw,
 } from './api';
 
 // ============================================================================
@@ -130,11 +138,14 @@ export type {
   OpenTDBDifficulty,
   OpenTDBType,
 
-  // Backend Types
+  // Backend Types (api.kahoot.uz)
   BackendQuiz,
   BackendQuestion,
   BackendQuizzesResponse,
   BackendQuizResponse,
+  JoinQuizRequest,
+  LeaderboardEntry,
+  SubmitResultRequest,
 
   // Adapter Types
   QuizFetchOptions,

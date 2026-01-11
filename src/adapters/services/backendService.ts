@@ -1,13 +1,20 @@
 /**
  * Backend Service
- * Composes API calls with normalization
+ * Composes API calls with normalization for api.kahoot.uz
  * 
  * Single Responsibility: Orchestration of fetch + transform
  */
 
 import type { StandardQuiz } from '@/types/quiz';
-import type { AdapterResult } from '../types';
-import { fetchBackendQuizzesRaw, fetchBackendQuizByIdRaw } from '../api';
+import type { AdapterResult, SubmitResultRequest, LeaderboardEntry } from '../types';
+import { 
+  fetchBackendQuizzesRaw, 
+  fetchBackendQuizByIdRaw,
+  fetchLeaderboardRaw,
+  fetchLeaderboardByQuizRaw,
+  submitQuizResultRaw,
+  joinQuizRaw,
+} from '../api';
 import { normalizeBackendQuiz, normalizeBackendQuizzes } from '../normalizers';
 import { MOCK_QUIZZES, getMockQuizById, MOCK_API_DELAY } from '../mocks';
 import { BACKEND_CONFIG, BACKEND_ERROR_MESSAGES } from '../constants';
@@ -15,13 +22,10 @@ import { BACKEND_CONFIG, BACKEND_ERROR_MESSAGES } from '../constants';
 /**
  * Fetches and normalizes quizzes from backend
  */
-export const fetchBackendQuizzes = async (
-  page: number = 1,
-  pageSize: number = 20
-): Promise<AdapterResult<StandardQuiz[]>> => {
+export const fetchBackendQuizzes = async (): Promise<AdapterResult<StandardQuiz[]>> => {
   try {
-    const data = await fetchBackendQuizzesRaw(page, pageSize);
-    const quizzes = normalizeBackendQuizzes(data.quizzes);
+    const data = await fetchBackendQuizzesRaw();
+    const quizzes = normalizeBackendQuizzes(data);
 
     return {
       data: quizzes,
@@ -48,7 +52,7 @@ export const fetchBackendQuizById = async (
 ): Promise<AdapterResult<StandardQuiz>> => {
   try {
     const data = await fetchBackendQuizByIdRaw(id);
-    const quiz = normalizeBackendQuiz(data.quiz);
+    const quiz = normalizeBackendQuiz(data);
 
     return {
       data: quiz,
@@ -59,6 +63,109 @@ export const fetchBackendQuizById = async (
     const errorMessage = error instanceof Error 
       ? error.message 
       : BACKEND_ERROR_MESSAGES.FETCH_FAILED;
+    return {
+      data: null,
+      error: errorMessage,
+      success: false,
+    };
+  }
+};
+
+/**
+ * Join a quiz using quiz key
+ */
+export const joinQuiz = async (
+  quizKey: string
+): Promise<AdapterResult<StandardQuiz>> => {
+  try {
+    const data = await joinQuizRaw(quizKey);
+    const quiz = normalizeBackendQuiz(data);
+
+    return {
+      data: quiz,
+      error: null,
+      success: true,
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : 'Failed to join quiz';
+    return {
+      data: null,
+      error: errorMessage,
+      success: false,
+    };
+  }
+};
+
+/**
+ * Get all leaderboard entries
+ */
+export const fetchLeaderboard = async (): Promise<AdapterResult<LeaderboardEntry[]>> => {
+  try {
+    const data = await fetchLeaderboardRaw();
+
+    return {
+      data: data,
+      error: null,
+      success: true,
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : 'Failed to fetch leaderboard';
+    return {
+      data: null,
+      error: errorMessage,
+      success: false,
+    };
+  }
+};
+
+/**
+ * Get leaderboard for a specific quiz
+ */
+export const fetchQuizLeaderboard = async (
+  quizId: string
+): Promise<AdapterResult<LeaderboardEntry[]>> => {
+  try {
+    const data = await fetchLeaderboardByQuizRaw(quizId);
+
+    return {
+      data: data,
+      error: null,
+      success: true,
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : 'Failed to fetch quiz leaderboard';
+    return {
+      data: null,
+      error: errorMessage,
+      success: false,
+    };
+  }
+};
+
+/**
+ * Submit quiz result to leaderboard
+ */
+export const submitQuizResult = async (
+  result: SubmitResultRequest
+): Promise<AdapterResult<{ message: string }>> => {
+  try {
+    const data = await submitQuizResultRaw(result);
+
+    return {
+      data: data,
+      error: null,
+      success: true,
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : 'Failed to submit result';
     return {
       data: null,
       error: errorMessage,

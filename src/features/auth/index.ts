@@ -8,8 +8,22 @@ export { ForgotPasswordForm } from './components/ForgotPasswordForm';
 
 // Hooks
 export { useLogin } from './hooks/useLogin';
-export { useRegister } from './hooks/useRegister';
+export { useRegister, type RegisterFormData } from './hooks/useRegister';
 export { useForgotPassword } from './hooks/useForgotPassword';
+
+// API
+export {
+  loginApi,
+  registerApi,
+  googleAuthApi,
+  getUserProfileApi,
+  type LoginRequest,
+  type RegisterRequest,
+  type GoogleAuthRequest,
+  type BackendUser,
+  type AuthResponse,
+  type UserProfileResponse,
+} from './api';
 
 // Constants
 export {
@@ -27,4 +41,4 @@ export {
 export { createPasteHandler, isPasteValid } from './utils';
 
 // Types
-export type { LoginCredentials, RegisterCredentials, AuthFormState, ForgotPasswordState } from './types';
+export type { LoginCredentials, AuthFormState, ForgotPasswordState } from './types';

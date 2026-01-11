@@ -10,8 +10,8 @@ import axios, { type AxiosInstance, type AxiosError, type InternalAxiosRequestCo
 // ============================================================================
 
 const API_CONFIG = {
-  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000',
-  TIMEOUT: 10000, // 10 seconds
+  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'https://api.kahoot.uz',
+  TIMEOUT: 15000, // 15 seconds
   RETRY_ATTEMPTS: 3,
   RETRY_DELAY: 1000, // 1 second
 } as const;

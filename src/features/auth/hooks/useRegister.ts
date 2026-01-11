@@ -1,13 +1,22 @@
 import { useState, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import type { RegisterCredentials, AuthFormState } from '../types';
+import type { AuthFormState } from '../types';
 import { INITIAL_AUTH_FORM_STATE, AUTH_ERROR_MESSAGES, AUTH_VALIDATION_MESSAGES } from '../constants';
+
+export interface RegisterFormData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  role?: 'student' | 'teacher';
+}
 
 export const useRegister = () => {
   const { register } = useAuth();
   const [state, setState] = useState<AuthFormState>(INITIAL_AUTH_FORM_STATE);
 
-  const handleRegister = useCallback(async (credentials: RegisterCredentials) => {
+  const handleRegister = useCallback(async (credentials: RegisterFormData) => {
     setState({ loading: true, error: '' });
 
     // Validate password match
@@ -17,10 +26,17 @@ export const useRegister = () => {
     }
 
     try {
-      await register(credentials.name, credentials.email, credentials.password);
+      await register(
+        credentials.firstName,
+        credentials.lastName,
+        credentials.email,
+        credentials.password,
+        credentials.role || 'student'
+      );
       return { success: true };
     } catch (err) {
-      setState({ loading: false, error: AUTH_ERROR_MESSAGES.REGISTRATION_FAILED });
+      const errorMessage = err instanceof Error ? err.message : AUTH_ERROR_MESSAGES.REGISTRATION_FAILED;
+      setState({ loading: false, error: errorMessage });
       return { success: false };
     } finally {
       setState((prev) => ({ ...prev, loading: false }));

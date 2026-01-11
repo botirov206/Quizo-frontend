@@ -27,13 +27,17 @@ export const OPENTDB_CONFIG = {
 
 export const BACKEND_CONFIG = {
   ENDPOINTS: {
-    QUIZZES: '/api/quizzes',
-    QUIZ_BY_ID: (id: string) => `/api/quiz/${id}`,
-    CREATE_QUIZ: '/api/quiz/create',
-    USER_QUIZZES: '/api/quizzes/my',
+    QUIZZES: '/quiz',
+    QUIZ_BY_ID: (id: string) => `/quiz/${id}`,
+    CREATE_QUIZ: '/quiz',
+    JOIN_QUIZ: '/quiz/join',
+    USER_QUIZZES: '/quiz/my',
+    LEADERBOARD: '/leaderboard',
+    LEADERBOARD_BY_QUIZ: (quizId: string) => `/leaderboard/${quizId}`,
+    USER_PROFILE: (userId: string) => `/me/${userId}`,
   },
-  // Toggle this when backend is ready
-  USE_REAL_API: false,
+  // Backend is now ready!
+  USE_REAL_API: true,
 } as const;
 
 // ============================================================================

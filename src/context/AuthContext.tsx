@@ -1,6 +1,23 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { ReactNode } from 'react';
-import type { User, AuthResponse } from '@/types/auth';
+import type { User } from '@/types/auth';
+import { loginApi, registerApi, googleAuthApi, type BackendUser } from '@/features/auth/api';
+import { getErrorMessage } from '@/lib/axios';
+
+/**
+ * Convert backend user to app user format
+ */
+const convertToAppUser = (backendUser: BackendUser): User => ({
+  id: backendUser.id,
+  email: backendUser.email,
+  name: `${backendUser.firstName} ${backendUser.lastName}`.trim(),
+  firstName: backendUser.firstName,
+  lastName: backendUser.lastName,
+  // Map 'user' role to 'student' for UI compatibility
+  role: backendUser.role === 'user' ? 'student' : backendUser.role,
+  totalScore: backendUser.totalScore,
+  quizzesPlayed: backendUser.quizzesPlayed,
+});
 
 interface AuthContextType {
   user: User | null;
@@ -8,7 +25,8 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
-  register: (name: string, email: string, password: string) => Promise<void>; // <--- ADD THIS
+  register: (firstName: string, lastName: string, email: string, password: string, role?: 'student' | 'teacher') => Promise<void>;
+  loginWithGoogle: (googleToken: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -18,8 +36,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-
-  // 1. Check LocalStorage on Load (Persistence)
+  // Check LocalStorage on Load (Persistence)
   useEffect(() => {
     try {
       const storedToken = localStorage.getItem('token');
@@ -38,84 +55,98 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  // 2. The Login Action (Currently Mocked)
-  const login = async (email: string, _password: string) => {
-    // TODO: Replace this with real API call later:
-    // const res = await api.post('/auth/login', { email, password });
-    
-    // MOCK SIMULATION (Wait 1 second)
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+  // Helper to save auth data
+  const saveAuthData = useCallback((authToken: string, authUser: User) => {
+    setToken(authToken);
+    setUser(authUser);
+    localStorage.setItem('token', authToken);
+    localStorage.setItem('user', JSON.stringify(authUser));
+  }, []);
 
-    if (email === 'fail@test.com') {
-      throw new Error('Invalid credentials');
+  // Login with email and password
+  const login = useCallback(async (email: string, password: string) => {
+    try {
+      const response = await loginApi({ email, password });
+      
+      // Convert backend user to app user format
+      const appUser = convertToAppUser(response.user);
+      
+      saveAuthData(response.token, appUser);
+    } catch (error) {
+      const message = getErrorMessage(error);
+      throw new Error(message || 'Login failed');
     }
+  }, [saveAuthData]);
 
-    // Determine role based on email for testing
-    const isTeacher = email.toLowerCase() === 'teacher@test.com';
-    
-    const mockResponse: AuthResponse = {
-      token: isTeacher ? 'fake-jwt-token-teacher-12345' : 'fake-jwt-token-student-12345',
-      user: {
-        id: isTeacher ? 'teacher-1' : 'student-1',
-        email: email,
-        name: isTeacher ? 'Test Teacher' : 'Test Student',
-        role: isTeacher ? 'teacher' : 'student',
-      },
-    };
-
-    // Save to State & Storage
-    setToken(mockResponse.token);
-    setUser(mockResponse.user);
-    localStorage.setItem('token', mockResponse.token);
-    localStorage.setItem('user', JSON.stringify(mockResponse.user));
-  };
-
-  // 3. The Register Action (Mocked)
-  const register = async (name: string, email: string, _password: string) => {
-    // MOCK SIMULATION
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    if (email === 'exists@test.com') {
-      throw new Error('User already exists');
+  // Register new user
+  const register = useCallback(async (
+    firstName: string,
+    lastName: string,
+    email: string,
+    password: string,
+    role: 'student' | 'teacher' = 'student'
+  ) => {
+    try {
+      // Map 'student' to 'user' for backend API (backend uses 'user' role)
+      const backendRole = role === 'student' ? 'user' : 'teacher';
+      
+      const response = await registerApi({
+        firstName,
+        lastName,
+        email,
+        password,
+        role: backendRole,
+      });
+      
+      // Convert backend user to app user format
+      const appUser = convertToAppUser(response.user);
+      
+      saveAuthData(response.token, appUser);
+    } catch (error) {
+      const message = getErrorMessage(error);
+      throw new Error(message || 'Registration failed');
     }
+  }, [saveAuthData]);
 
-    // Determine role based on email pattern for testing
-    const isTeacher = email.toLowerCase().includes('teacher');
-    
-    const mockResponse: AuthResponse = {
-      token: 'fake-jwt-token-register-123',
-      user: {
-        id: isTeacher ? 'teacher-new' : 'student-new',
-        email: email,
-        name: name,
-        role: isTeacher ? 'teacher' : 'student',
-      },
-    };
+  // Login with Google OAuth
+  const loginWithGoogle = useCallback(async (googleToken: string) => {
+    try {
+      const response = await googleAuthApi(googleToken);
+      
+      // Convert backend user to app user format
+      const appUser = convertToAppUser(response.user);
+      
+      saveAuthData(response.token, appUser);
+    } catch (error) {
+      const message = getErrorMessage(error);
+      throw new Error(message || 'Google authentication failed');
+    }
+  }, [saveAuthData]);
 
-    setToken(mockResponse.token);
-    setUser(mockResponse.user);
-    localStorage.setItem('token', mockResponse.token);
-    localStorage.setItem('user', JSON.stringify(mockResponse.user));
-  };
-
-  // 4. The Logout Action
-  const logout = () => {
+  // Logout
+  const logout = useCallback(() => {
     setToken(null);
     setUser(null);
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    // Optional: Redirect to login page here or in the UI
-  };
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, login, logout, register }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      token, 
+      isLoading, 
+      login, 
+      logout, 
+      register,
+      loginWithGoogle 
+    }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-
-// 4. Custom Hook for easy usage
+// Custom Hook for easy usage
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

@@ -13,10 +13,14 @@ export {
   resetRateLimitTracker,
 } from './opentdbApi';
 
-// Backend API
+// Backend API (api.kahoot.uz)
 export {
   fetchBackendQuizzesRaw,
   fetchBackendQuizByIdRaw,
   fetchUserQuizzesRaw,
   createQuizRaw,
+  joinQuizRaw,
+  fetchLeaderboardRaw,
+  fetchLeaderboardByQuizRaw,
+  submitQuizResultRaw,
 } from './backendApi';

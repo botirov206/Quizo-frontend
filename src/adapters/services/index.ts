@@ -9,7 +9,7 @@ export {
   fetchMultipleOpenTDBQuizzes,
 } from './opentdbService';
 
-// Backend Service
+// Backend Service (api.kahoot.uz)
 export {
   fetchBackendQuizzes,
   fetchBackendQuizById,
@@ -17,4 +17,8 @@ export {
   fetchBackendQuizByIdMock,
   fetchQuizzesAuto,
   fetchQuizByIdAuto,
+  joinQuiz,
+  fetchLeaderboard,
+  fetchQuizLeaderboard,
+  submitQuizResult,
 } from './backendService';

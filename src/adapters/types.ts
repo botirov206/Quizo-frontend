@@ -47,46 +47,80 @@ export interface OpenTDBCategoriesResponse {
 }
 
 // ============================================================================
-// Backend API Types (Custom Backend)
+// Backend API Types (Custom Backend - api.kahoot.uz)
 // ============================================================================
 
+/**
+ * Backend question format from api.kahoot.uz
+ * Format: { question, options: string[], correctAnswer }
+ */
 export interface BackendQuestion {
-  id: string;
-  text: string;
-  type: 'multiple-choice' | 'true-false';
-  options: Array<{
-    id: string;
-    text: string;
-  }>;
-  correctAnswerId: string;
-  explanation?: string;
+  question: string;
+  options: string[];
+  correctAnswer: string;
 }
 
+/**
+ * Backend quiz format from api.kahoot.uz
+ * Format: { id, title, quizKey, questions }
+ */
 export interface BackendQuiz {
   id: string;
   title: string;
+  quizKey: string;
+  questions?: BackendQuestion[];
   description?: string;
-  category: string;
-  difficulty: 'easy' | 'medium' | 'hard';
-  timeLimit: number; // in minutes
-  questions: BackendQuestion[];
-  createdBy: {
+  category?: string;
+  difficulty?: 'easy' | 'medium' | 'hard';
+  timeLimit?: number;
+  createdBy?: {
     id: string;
     name: string;
   };
-  createdAt: string;
+  createdAt?: string;
   updatedAt?: string;
 }
 
-export interface BackendQuizzesResponse {
-  quizzes: BackendQuiz[];
-  total: number;
-  page: number;
-  pageSize: number;
-}
+/**
+ * GET /quiz response - returns array of quizzes
+ */
+export type BackendQuizzesResponse = BackendQuiz[];
 
+/**
+ * POST /quiz response
+ */
 export interface BackendQuizResponse {
   quiz: BackendQuiz;
+  message?: string;
+}
+
+/**
+ * POST /quiz/join request
+ */
+export interface JoinQuizRequest {
+  quizKey: string;
+}
+
+/**
+ * Leaderboard entry format
+ */
+export interface LeaderboardEntry {
+  userId: string;
+  quizId: string;
+  score: number;
+  time: number;
+  userName?: string;
+  createdAt?: string;
+}
+
+/**
+ * POST /leaderboard request
+ */
+export interface SubmitResultRequest {
+  userId: string;
+  quizId: string;
+  score: number;
+  time: number;
 }
 
 // ============================================================================

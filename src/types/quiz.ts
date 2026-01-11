@@ -21,6 +21,10 @@ export interface StandardQuiz {
   questions: StandardQuestion[];
   createdBy?: string; // User ID (for custom quizzes)
   createdAt?: string;
+  metadata?: {
+    quizKey?: string;
+    [key: string]: unknown;
+  };
 }
 
 export type GameStatus = 'IDLE' | 'LOADING' | 'PLAYING' | 'FEEDBACK' | 'FINISHED';

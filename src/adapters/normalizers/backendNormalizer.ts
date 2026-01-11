@@ -1,37 +1,35 @@
 /**
  * Backend Normalizer
- * Transforms custom backend API responses to StandardQuiz format
+ * Transforms custom backend API responses (api.kahoot.uz) to StandardQuiz format
  * 
  * Single Responsibility: Data transformation only
  */
 
 import type { StandardQuiz, StandardQuestion } from '@/types/quiz';
 import type { BackendQuiz, BackendQuestion } from '../types';
+import { generateQuestionId } from '../utils';
 
 /**
  * Normalizes a single backend question to StandardQuestion format
+ * Backend format: { question, options: string[], correctAnswer }
  */
 export const normalizeBackendQuestion = (
-  question: BackendQuestion
+  question: BackendQuestion,
+  index: number
 ): StandardQuestion => {
-  // Backend stores options as objects, we need string array
-  const options = question.options.map(opt => opt.text);
-
-  // Find the correct answer text from the option ID
-  const correctOption = question.options.find(
-    opt => opt.id === question.correctAnswerId
-  );
-  const correctAnswerId = correctOption
-    ? correctOption.text
-    : question.correctAnswerId;
+  // Backend stores options as string array directly
+  const options = question.options || [];
 
   return {
-    id: question.id,
-    text: question.text,
+    id: generateQuestionId(index),
+    text: question.question,
     options,
-    correctAnswerId,
-    type: question.type === 'true-false' ? 'boolean' : 'multiple',
-    explanation: question.explanation,
+    correctAnswerId: question.correctAnswer,
+    type: options.length === 2 && 
+          options.includes('True') && 
+          options.includes('False') 
+            ? 'boolean' 
+            : 'multiple',
   };
 };
 
@@ -41,24 +39,36 @@ export const normalizeBackendQuestion = (
 export const normalizeBackendQuestions = (
   questions: BackendQuestion[]
 ): StandardQuestion[] => {
-  return questions.map(normalizeBackendQuestion);
+  if (!questions || !Array.isArray(questions)) {
+    return [];
+  }
+  return questions.map((q, index) => normalizeBackendQuestion(q, index));
 };
 
 /**
  * Transforms complete backend quiz to StandardQuiz format
+ * Backend format: { id, title, quizKey, questions }
  */
 export const normalizeBackendQuiz = (quiz: BackendQuiz): StandardQuiz => {
+  const questions = quiz.questions 
+    ? normalizeBackendQuestions(quiz.questions) 
+    : [];
+
   return {
     id: quiz.id,
     title: quiz.title,
-    description: quiz.description,
+    description: quiz.description || `Quiz Key: ${quiz.quizKey}`,
     source: 'custom',
-    category: quiz.category,
-    difficulty: quiz.difficulty,
-    timeLimit: quiz.timeLimit * 60, // Convert minutes to seconds
-    questions: normalizeBackendQuestions(quiz.questions),
-    createdBy: quiz.createdBy.id,
+    category: quiz.category || 'General',
+    difficulty: quiz.difficulty || 'medium',
+    timeLimit: quiz.timeLimit ? quiz.timeLimit * 60 : 30 * questions.length, // Default: 30s per question
+    questions,
+    createdBy: quiz.createdBy?.id,
     createdAt: quiz.createdAt,
+    // Store quizKey for joining quizzes
+    metadata: {
+      quizKey: quiz.quizKey,
+    },
   };
 };
 
@@ -66,7 +76,10 @@ export const normalizeBackendQuiz = (quiz: BackendQuiz): StandardQuiz => {
  * Normalizes an array of backend quizzes
  */
 export const normalizeBackendQuizzes = (
-  quizzes: BackendQuiz[]
+  quizzes: BackendQuiz[] | unknown
 ): StandardQuiz[] => {
+  if (!quizzes || !Array.isArray(quizzes)) {
+    return [];
+  }
   return quizzes.map(normalizeBackendQuiz);
 };
