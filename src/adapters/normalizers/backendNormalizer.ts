@@ -21,7 +21,7 @@ export const normalizeBackendQuestion = (
   const options = question.options || [];
 
   return {
-    id: generateQuestionId(index),
+    id: generateQuestionId(String(index)),
     text: question.question,
     options,
     correctAnswerId: question.correctAnswer,
