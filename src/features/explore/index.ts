@@ -7,6 +7,7 @@
 export { CategoryBrowser } from './components/CategoryBrowser';
 export { CategoryCard } from './components/CategoryCard';
 export { QuizConfigDialog } from './components/QuizConfigDialog';
+export { QuizConfigPage } from './components/QuizConfigPage';
 export { OpenTDBGame } from './components/OpenTDBGame';
 
 // Hooks

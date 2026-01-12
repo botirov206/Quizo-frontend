@@ -7,7 +7,7 @@ import { ForgotPasswordForm } from '@/features/auth/components/ForgotPasswordFor
 import { Dashboard, QuizzesPage } from '@/features/dashboard';
 import { QuizCreator } from '@/features/quiz';
 import { GameEngine, JoinPage } from '@/features/game';
-import { CategoryBrowser, OpenTDBGame } from '@/features/explore';
+import { CategoryBrowser, OpenTDBGame, QuizConfigPage } from '@/features/explore';
 import { ClassroomPage } from '@/features/classroom';
 
 function App() {
@@ -48,6 +48,7 @@ const AppRoutes = () => {
       
       {/* Explore Feature - OpenTDB Categories */}
       <Route path="/explore" element={user ? <CategoryBrowser /> : <Navigate to="/login" />} />
+      <Route path="/explore/configure" element={user ? <QuizConfigPage /> : <Navigate to="/login" />} />
       <Route path="/play/opentdb" element={user ? <OpenTDBGame /> : <Navigate to="/login" />} />
       
       {/* Classroom Feature */}

@@ -4,30 +4,29 @@
  */
 
 import { useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/features/dashboard';
 import { useCategories } from '../hooks/useCategories';
 import { CategoryCard } from './CategoryCard';
-import { QuizConfigDialog } from './QuizConfigDialog';
 import type { Category } from '../types';
 import { Loader2, RefreshCw, Search, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 export const CategoryBrowser = () => {
+  const navigate = useNavigate();
   const { categories, isLoading, error, refetch, isFetching } = useCategories();
-  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleCategoryClick = useCallback((category: Category) => {
-    setSelectedCategory(category);
-    setIsDialogOpen(true);
-  }, []);
-
-  const handleDialogClose = useCallback(() => {
-    setIsDialogOpen(false);
-    setSelectedCategory(null);
-  }, []);
+    // Navigate to the quiz config page with category info
+    const params = new URLSearchParams({
+      categoryId: category.id.toString(),
+      categoryName: category.name,
+      icon: category.icon || '🎯',
+    });
+    navigate(`/explore/configure?${params.toString()}`);
+  }, [navigate]);
 
   // Filter categories based on search
   const filteredCategories = categories.filter(cat =>
@@ -125,13 +124,6 @@ export const CategoryBrowser = () => {
           </div>
         )}
       </div>
-
-      {/* Quiz Config Dialog */}
-      <QuizConfigDialog
-        category={selectedCategory}
-        isOpen={isDialogOpen}
-        onClose={handleDialogClose}
-      />
     </DashboardLayout>
   );
 };
