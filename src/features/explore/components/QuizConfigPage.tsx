@@ -3,13 +3,13 @@
  * Full page for configuring quiz settings before starting
  */
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { DashboardLayout } from '@/features/dashboard';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Play, Clock, Hash, Trophy, ArrowLeft, Sparkles } from 'lucide-react';
 import type { QuizConfig } from '../types';
 import { DEFAULT_QUIZ_CONFIG, QUIZ_CONFIG_LIMITS, DIFFICULTY_POINTS } from '../types';
