@@ -2,50 +2,59 @@
 
 **Status: COMPLETE** ✅
 
-- [x] Write opentdbAdapter.ts (normalize to StandardQuiz)
-- [x] Write backendAdapter.ts (normalize, auth headers)
-- [x] Update Dashboard to fetch both sources
-- [x] Filter by source, show badge
-- [x] Test adapter switching without UI changes
+- [x] OpenTDB adapter path (normalize to StandardQuiz)
+- [x] Backend adapter path (normalize, auth headers)
+- [x] Dashboard fetches custom quizzes via adapters
+- [x] Source filter exists (`SourceFilter`); Explore is the OpenTDB UI
+- [x] Adapter switching without UI changes (`BACKEND_CONFIG.USE_REAL_API`)
 
 ## Implementation Summary
 
-### Files Created:
-- `src/adapters/types.ts` - All adapter interfaces and types
-- `src/adapters/utils.ts` - Shared utilities (HTML decode, shuffle, etc.)
-- `src/adapters/opentdbAdapter.ts` - OpenTDB API normalization
-- `src/adapters/backendAdapter.ts` - Custom backend normalization + mocks
-- `src/adapters/quizService.ts` - Unified service combining both sources
-- `src/adapters/index.ts` - Public API exports
-- `src/lib/axios.ts` - Configured axios instance with interceptors
+### Files (current layout)
 
-### Key Features:
-1. **HTML Entity Decoding** - OpenTDB returns HTML-encoded strings
-2. **Fisher-Yates Shuffle** - Options are shuffled for each question
-3. **Rate Limit Handling** - OpenTDB has 5-second rate limit
-4. **Source Filtering** - Filter by 'all', 'opentdb', or 'custom'
-5. **Mock Backend** - Full mock implementation until API is ready
-6. **Auth Token Injection** - Axios interceptor adds Bearer token
+The original two-file adapters (`opentdbAdapter.ts`, `backendAdapter.ts`) were split:
 
-### Architecture Pattern:
+- `src/adapters/types.ts` — OpenTDB and backend interfaces
+- `src/adapters/utils.ts` — HTML decode, shuffle, ids
+- `src/adapters/api/` — raw HTTP (`opentdbApi.ts`, `backendApi.ts`)
+- `src/adapters/normalizers/` — API → `StandardQuiz`
+- `src/adapters/services/` — fetch + normalize
+- `src/adapters/quizService.ts` — unified multi-source orchestration
+- `src/adapters/constants/index.ts` — URLs, endpoints, `BACKEND_CONFIG.USE_REAL_API`
+- `src/adapters/index.ts` — public API
+- `src/lib/axios.ts` — axios instance with interceptors
+
+### Key Features
+
+1. **HTML Entity Decoding** — OpenTDB returns HTML-encoded strings
+2. **Fisher-Yates Shuffle** — options shuffled per question
+3. **Rate Limit Handling** — OpenTDB 5.5s delay, retry on 429
+4. **Source Filtering** — `fetchAllQuizzes({ source: 'all' | 'opentdb' | 'custom' })`
+5. **Real backend** — `BACKEND_CONFIG.USE_REAL_API` is `true` in `constants/index.ts`
+6. **Auth Token Injection** — axios interceptor adds Bearer token
+
+### Architecture
+
 ```
-[OpenTDB API] ──→ [opentdbAdapter.ts] ──→ [StandardQuiz] ──→ [Game UI]
-[Backend API] ──→ [backendAdapter.ts] ──→ [StandardQuiz] ──→ [Game UI]
+[OpenTDB API] ──→ [api + normalizer + service] ──→ [StandardQuiz] ──→ [Explore UI]
+[Backend API] ──→ [api + normalizer + service] ──→ [StandardQuiz] ──→ [Dashboard / Game]
                                               ↑
                                [quizService.ts] combines both
 ```
 
-### API Integration Ready:
-To switch from mock to real backend, change in `quizService.ts`:
+### Switching mock vs real backend
+
+In `src/adapters/constants/index.ts`:
+
 ```typescript
-const CONFIG = {
-  USE_REAL_BACKEND: true, // Change to true
+export const BACKEND_CONFIG = {
   // ...
-};
+  USE_REAL_API: true, // false uses mocks/mockQuizzes.ts
+} as const;
 ```
 
 Acceptance Criteria:
-- ✅ Unified list from both sources
-- ✅ Play works for both source types
-- ✅ Filter tabs show correct counts
-- ✅ Source badges visible on cards
+- ✅ Unified list from both sources (quizService)
+- ✅ Play works for OpenTDB (`/play/opentdb`) and custom (`/quiz/:id/play`)
+- ⚠️ Dashboard quiz grid is custom-only; OpenTDB browsing is `/explore`
+- ⚠️ Source badges exist on `QuizCard`; source filter tabs are commented out

@@ -1,3 +1,5 @@
+> **Historical PRD.** Written for the January 2026 7-day frontend sprint under the working name EduQuiz. The product name is now **Kahoot.uz**. Paths like `opentdbAdapter.ts` / `backendAdapter.ts` were later split into `src/adapters/{api,normalizers,services}/`. For the current layout and a refresher, see [README.md](README.md) and [docs/PROJECT_SUMMARY.md](docs/PROJECT_SUMMARY.md). The rewrite lives in `../Kahoot-backend/`.
+
 # 📂 Product Requirements Document (PRD): EduQuiz Platform
 
 | **Project Name** | EduQuiz (Internal Code: *Project-Gamify*) |

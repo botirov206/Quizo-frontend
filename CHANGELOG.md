@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to the EduQuiz Platform will be documented in this file.
+All notable changes to Kahoot.uz will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -57,14 +57,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `shuffleArray()` - Fisher-Yates shuffle for options
   - `generateQuestionId()` - unique ID generation
   - `cleanCategoryName()` - strip "Entertainment:" prefixes
-- [Adapters] `src/adapters/opentdbAdapter.ts` - OpenTDB API normalization:
+- [Adapters] OpenTDB path: `api/opentdbApi.ts` + `normalizers/opentdbNormalizer.ts` + `services/opentdbService.ts`
   - Fetch questions with category, difficulty, amount parameters
   - Normalize to StandardQuiz format
   - Handle API response codes (rate limit, no results, etc.)
   - Fetch categories list
-- [Adapters] `src/adapters/backendAdapter.ts` - Custom backend adapter:
-  - Mock implementation for development
-  - Ready for real API integration (change `USE_REAL_BACKEND` flag)
+- [Adapters] Backend path: `api/backendApi.ts` + `normalizers/backendNormalizer.ts` + `services/backendService.ts`
+  - Real API when `BACKEND_CONFIG.USE_REAL_API` is true (`src/adapters/constants/index.ts`)
   - Auth token injection via axios interceptors
 - [Adapters] `src/adapters/quizService.ts` - Unified quiz service:
   - `fetchAllQuizzes()` - combine both sources
