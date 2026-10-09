@@ -1,91 +1,40 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Play, ArrowLeft } from 'lucide-react';
-import { joinQuiz } from '@/adapters';
+import { useQuizPreview } from '@/features/quiz';
+import { getErrorMessage, isNotFoundError } from '@/lib/api-error';
+import { toastApiError } from '@/lib/toast-api-error';
 
-/**
- * JoinPage Component
- * Allows students to join a quiz session using a unique quiz_key
- * 
- * Flow:
- * 1. Student enters quiz_key (e.g., "V8QLAP") or receives it via URL (?code=V8QLAP)
- * 2. POST /quiz/join with { quizKey: "V8QLAP" }
- * 3. Backend returns full quiz with questions
- * 4. Navigate to game with quiz data in state
- */
+function sanitizeKey(value: string): string {
+  return value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 6);
+}
+
 export const JoinPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [quizCode, setQuizCode] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [quizCode, setQuizCode] = useState(() => sanitizeKey(searchParams.get('code') ?? ''));
+  const previewQuery = useQuizPreview(quizCode);
+  const preview = previewQuery.data;
+  const notFound = isNotFoundError(previewQuery.error);
 
-  // Join quiz with a given code
-  const joinWithCode = useCallback(async (code: string) => {
-    const trimmedCode = code.trim().toUpperCase();
-    
-    if (!trimmedCode || trimmedCode.length < 4) {
-      setError('Quiz code must be at least 4 characters');
-      return;
-    }
-
-    setError('');
-    setLoading(true);
-
-    try {
-      // Call the backend API to join quiz with quiz_key
-      const result = await joinQuiz(trimmedCode);
-      
-      if (!result.success || !result.data) {
-        throw new Error(result.error || 'Invalid quiz code');
-      }
-
-      // Navigate to play page with the quiz data
-      navigate(`/quiz/${result.data.id}/play`, {
-        state: { quiz: result.data, quizKey: trimmedCode }
-      });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Invalid quiz code. Please check and try again.';
-      setError(message);
-      setLoading(false);
-    }
-  }, [navigate]);
-
-  // Auto-join if code is provided via URL query parameter
   useEffect(() => {
-    const codeFromUrl = searchParams.get('code');
-    if (codeFromUrl) {
-      const sanitizedCode = codeFromUrl.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-      setQuizCode(sanitizedCode);
-      // Auto-join if code is valid length
-      if (sanitizedCode.length >= 4) {
-        joinWithCode(sanitizedCode);
-      }
-    }
-  }, [searchParams, joinWithCode]);
+    if (previewQuery.error && !notFound) toastApiError(previewQuery.error);
+  }, [previewQuery.error, notFound]);
 
-  const handleJoin = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    joinWithCode(quizCode);
-  }, [quizCode, joinWithCode]);
-
-  const handleCodeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    // Only allow alphanumeric characters, auto-uppercase
-    const value = e.target.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-    setQuizCode(value);
-    if (error) setError('');
-  }, [error]);
+  const start = () => {
+    if (!preview) return;
+    navigate(`/quiz/${preview.id}/play`, { state: { quizKey: quizCode } });
+  };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
       <div className="w-full max-w-md space-y-4 px-4">
-        {/* Back to Dashboard Link */}
-        <Link 
-          to="/dashboard" 
+        <Link
+          to="/dashboard"
           className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="h-4 w-4 mr-1" />
@@ -99,50 +48,67 @@ export const JoinPage = () => {
             </div>
             <CardTitle className="text-2xl">Join a Quiz</CardTitle>
             <CardDescription>
-              Enter the quiz code provided by your teacher to join the session
+              Enter the 6-character quiz key from your teacher
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleJoin} className="space-y-4">
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                start();
+              }}
+              className="space-y-4"
+            >
               <div className="space-y-2">
-                <Label htmlFor="quizCode">Quiz Code</Label>
+                <Label htmlFor="quizCode">Quiz key</Label>
                 <Input
                   id="quizCode"
                   type="text"
-                  placeholder="Enter code (e.g., ABC123)"
+                  placeholder="ABC123"
                   value={quizCode}
-                  onChange={handleCodeChange}
-                  maxLength={10}
+                  onChange={(event) => setQuizCode(sanitizeKey(event.target.value))}
+                  maxLength={6}
                   className="text-center text-2xl font-mono tracking-widest uppercase h-14"
                   autoComplete="off"
                   autoFocus
                 />
-                {error && (
-                  <p className="text-sm text-destructive text-center">{error}</p>
+                {quizCode.length > 0 && quizCode.length < 6 && (
+                  <p className="text-sm text-muted-foreground text-center">Enter all 6 characters</p>
+                )}
+                {notFound && (
+                  <p className="text-sm text-destructive text-center">No quiz with that key</p>
+                )}
+                {previewQuery.error && !notFound && (
+                  <p className="text-sm text-destructive text-center">
+                    {getErrorMessage(previewQuery.error)}
+                  </p>
                 )}
               </div>
 
-              <Button 
-                type="submit" 
-                className="w-full h-12 text-lg"
-                disabled={loading || !quizCode.trim()}
-              >
-                {loading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-background mr-2" />
-                    Joining...
-                  </>
-                ) : (
-                  <>
-                    <Play className="h-5 w-5 mr-2" />
-                    Join Quiz
-                  </>
-                )}
+              {previewQuery.isFetching && (
+                <p className="text-sm text-muted-foreground text-center">Looking up quiz...</p>
+              )}
+
+              {preview && (
+                <div className="rounded-lg border p-4 space-y-1 text-sm">
+                  <p className="text-lg font-semibold">{preview.title}</p>
+                  <p>{preview.questionCount} questions</p>
+                  <p className="capitalize">{preview.difficulty.toLowerCase()}</p>
+                  <p>{preview.timePerQuestion} seconds per question</p>
+                  <p>
+                    {preview.creator.firstName} {preview.creator.lastName}
+                  </p>
+                </div>
+              )}
+
+              <Button type="submit" className="w-full h-12 text-lg" disabled={!preview}>
+                <Play className="h-5 w-5 mr-2" />
+                Start
               </Button>
             </form>
 
             <p className="text-center text-sm text-muted-foreground mt-6">
-              Don't have a code?{' '}
+              Don&apos;t have a code?{' '}
               <Link to="/explore" className="text-primary hover:underline">
                 Explore public quizzes
               </Link>

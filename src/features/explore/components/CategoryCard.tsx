@@ -13,7 +13,9 @@ interface CategoryCardProps {
 }
 
 export const CategoryCard = memo(({ category, onClick }: CategoryCardProps) => {
-  const gradientClass = CATEGORY_COLORS[category.id] || 'from-gray-500 to-gray-600';
+  const gradientClass =
+    (category.externalId != null && CATEGORY_COLORS[category.externalId]) || 'from-gray-500 to-gray-600';
+  const questionCount = category.counts.EASY + category.counts.MEDIUM + category.counts.HARD;
 
   return (
     <button
@@ -42,6 +44,7 @@ export const CategoryCard = memo(({ category, onClick }: CategoryCardProps) => {
         <h3 className="text-lg font-semibold text-center leading-tight">
           {category.name}
         </h3>
+        <p className="text-xs text-white/80">{questionCount} questions</p>
       </div>
 
       {/* Hover effect overlay */}

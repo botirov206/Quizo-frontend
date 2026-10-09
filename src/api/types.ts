@@ -33,3 +33,19 @@ export type ForgotPasswordRequest = NonNullable<
 export type ResetPasswordRequest = NonNullable<
   paths['/api/v1/auth/reset-password']['post']['requestBody']
 >['content']['application/json'];
+
+export type QuizListItem = Schemas['QuizListItem'];
+export type QuizPreview = Schemas['QuizPreview'];
+export type QuizMutation = Schemas['QuizMutation'];
+
+export type CategoryListResponse =
+  paths['/api/v1/categories']['get']['responses'][200]['content']['application/json'];
+
+export type CategoryItem = CategoryListResponse['items'][number];
+
+export type QuizListResponse =
+  paths['/api/v1/quizzes']['get']['responses'][200]['content']['application/json'];
+
+export type CreateQuizBody = NonNullable<
+  paths['/api/v1/quizzes']['post']['requestBody']
+>['content']['application/json'];

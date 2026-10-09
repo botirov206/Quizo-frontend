@@ -22,12 +22,7 @@ export { MyQuizzesList } from './components/MyQuizzesList';
 export { RecentStudentResults } from './components/RecentStudentResults';
 export { TeacherQuickActions } from './components/TeacherQuickActions';
 
-// Filters (currently unused, may use in future)
-export { SourceFilter, SOURCE_FILTER_OPTIONS } from './components/filters';
-export type { SourceFilterOption } from './components/filters';
-
 // Hooks
-export { useQuizzes, useQuizById } from './hooks/useQuizzes';
 export { useStudentStats } from './hooks/useStudentStats';
 export { useRecentActivity } from './hooks/useRecentActivity';
 export { useTeacherStats } from './hooks/useTeacherStats';

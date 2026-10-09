@@ -39,11 +39,8 @@ export default defineConfig([
     },
   },
   {
-    // Removed when F1 round 4 deletes OpenTDBGame and round 6 splits QuizCreator.
-    files: [
-      'src/features/explore/components/OpenTDBGame.tsx',
-      'src/features/quiz/components/QuizCreator.tsx',
-    ],
+    // Removed when round 4 deletes OpenTDBGame.
+    files: ['src/features/explore/components/OpenTDBGame.tsx'],
     rules: { 'max-lines': 'off' },
   },
 ])

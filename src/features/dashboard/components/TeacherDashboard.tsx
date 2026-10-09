@@ -37,35 +37,25 @@ export const TeacherDashboard: FC = () => {
           </p>
         </div>
 
-        {/* Loading State */}
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         ) : data ? (
-          <>
-            {/* Stats Cards */}
-            <TeacherStats stats={data.stats} />
-
-            {/* Main Content Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Left Column - Quizzes & Results */}
-              <div className="lg:col-span-2 space-y-6">
-                <MyQuizzesList quizzes={data.quizzes} />
-                <RecentStudentResults results={data.recentResults} />
-              </div>
-
-              {/* Right Column - Quick Actions */}
-              <div>
-                <TeacherQuickActions />
-              </div>
-            </div>
-          </>
+          <TeacherStats stats={data.stats} />
         ) : (
-          <div className="text-center py-12">
-            <p className="text-sm text-muted-foreground">No data available</p>
-          </div>
+          <p className="text-sm text-muted-foreground">No stats available</p>
         )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <MyQuizzesList />
+            {data && <RecentStudentResults results={data.recentResults} />}
+          </div>
+          <div>
+            <TeacherQuickActions />
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   );

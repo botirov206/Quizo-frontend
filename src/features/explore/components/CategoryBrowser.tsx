@@ -44,7 +44,7 @@ export const CategoryBrowser = () => {
               Explore Categories
             </h1>
             <p className="text-muted-foreground">
-              Choose a category and test your knowledge with trivia from OpenTDB
+              Choose a category and start a quiz
             </p>
           </div>
           <Button 
@@ -120,7 +120,7 @@ export const CategoryBrowser = () => {
         {/* Stats footer */}
         {!isLoading && categories.length > 0 && (
           <div className="text-center text-sm text-muted-foreground pt-4 border-t">
-            {categories.length} categories available • Powered by OpenTDB
+            {categories.length} categories available
           </div>
         )}
       </div>

@@ -16,11 +16,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Play, Clock, Hash, Trophy } from 'lucide-react';
-import type { Category, QuizConfig } from '../types';
-import { DEFAULT_QUIZ_CONFIG, QUIZ_CONFIG_LIMITS, DIFFICULTY_POINTS } from '../types';
-import { DIFFICULTY_OPTIONS, QUESTION_PRESETS, TIME_PRESETS, STORAGE_KEYS } from '../constants';
-import type { OpenTDBDifficulty } from '@/adapters';
+import { Play, Clock, Hash } from 'lucide-react';
+import type { Category, QuizConfig, ExploreDifficulty } from '../types';
+import { DEFAULT_QUIZ_CONFIG, QUIZ_CONFIG_LIMITS, DIFFICULTY_POINTS, countForDifficulty } from '../types';
+import { QUESTION_PRESETS, TIME_PRESETS, STORAGE_KEYS } from '../constants';
+import { DifficultyPicker } from './DifficultyPicker';
 
 interface QuizConfigDialogProps {
   category: Category | null;
@@ -31,26 +31,26 @@ interface QuizConfigDialogProps {
 export const QuizConfigDialog = ({ category, isOpen, onClose }: QuizConfigDialogProps) => {
   const navigate = useNavigate();
   
-  const [difficulty, setDifficulty] = useState<OpenTDBDifficulty>(DEFAULT_QUIZ_CONFIG.difficulty);
+  const [difficulty, setDifficulty] = useState<ExploreDifficulty>(DEFAULT_QUIZ_CONFIG.difficulty);
   const [timePerQuestion, setTimePerQuestion] = useState<number>(DEFAULT_QUIZ_CONFIG.timePerQuestion);
   const [numberOfQuestions, setNumberOfQuestions] = useState<number>(DEFAULT_QUIZ_CONFIG.numberOfQuestions);
 
   const handleStartQuiz = useCallback(() => {
     if (!category) return;
 
+    if (countForDifficulty(category.counts, difficulty) === 0) return;
+
     const config: QuizConfig = {
-      categoryId: category.id,
+      categoryId: category.externalId ?? 0,
       categoryName: category.name,
       difficulty,
       timePerQuestion,
       numberOfQuestions,
     };
 
-    // Save config to localStorage for the game engine to use
     localStorage.setItem(STORAGE_KEYS.QUIZ_CONFIG, JSON.stringify(config));
 
-    // Navigate to the game with config params
-    navigate(`/play/opentdb?category=${category.id}&difficulty=${difficulty}&amount=${numberOfQuestions}&time=${timePerQuestion}`);
+    navigate(`/play/opentdb?category=${category.externalId ?? ''}&difficulty=${difficulty}&amount=${numberOfQuestions}&time=${timePerQuestion}`);
     onClose();
   }, [category, difficulty, timePerQuestion, numberOfQuestions, navigate, onClose]);
 
@@ -84,32 +84,11 @@ export const QuizConfigDialog = ({ category, isOpen, onClose }: QuizConfigDialog
 
         <div className="space-y-6 py-4">
           {/* Difficulty Selection */}
-          <div className="space-y-3">
-            <Label className="flex items-center gap-2 text-base font-medium">
-              <Trophy className="h-4 w-4" />
-              Difficulty
-            </Label>
-            <div className="grid grid-cols-3 gap-2">
-              {DIFFICULTY_OPTIONS.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => setDifficulty(option.value as OpenTDBDifficulty)}
-                  className={`
-                    relative rounded-lg border-2 p-3 text-center transition-all
-                    ${difficulty === option.value
-                      ? 'border-primary bg-primary/10 ring-2 ring-primary/20'
-                      : 'border-muted hover:border-primary/50 hover:bg-muted/50'
-                    }
-                  `}
-                >
-                  <div className="font-semibold">{option.label}</div>
-                  <div className={`text-sm ${option.color}`}>
-                    {option.points} pts/q
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
+          <DifficultyPicker
+            value={difficulty}
+            counts={category.counts}
+            onChange={setDifficulty}
+          />
 
           {/* Time Per Question */}
           <div className="space-y-3">
@@ -194,7 +173,11 @@ export const QuizConfigDialog = ({ category, isOpen, onClose }: QuizConfigDialog
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={handleStartQuiz} className="gap-2">
+          <Button
+            onClick={handleStartQuiz}
+            className="gap-2"
+            disabled={countForDifficulty(category.counts, difficulty) === 0}
+          >
             <Play className="h-4 w-4" />
             Start Quiz
           </Button>

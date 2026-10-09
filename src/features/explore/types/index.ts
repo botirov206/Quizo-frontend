@@ -3,18 +3,32 @@
  * Types for category browsing and quiz configuration
  */
 
-import type { OpenTDBDifficulty } from '@/adapters';
+import type { CategoryItem } from '@/api/types';
+
+export type ExploreDifficulty = 'easy' | 'medium' | 'hard';
 
 export interface Category {
-  id: number;
+  id: string;
   name: string;
+  externalId: number | null;
+  counts: CategoryItem['counts'];
   icon?: string;
+}
+
+export function countForDifficulty(
+  counts: Category['counts'] | undefined,
+  difficulty: ExploreDifficulty,
+): number | undefined {
+  if (!counts) return undefined;
+  if (difficulty === 'easy') return counts.EASY;
+  if (difficulty === 'medium') return counts.MEDIUM;
+  return counts.HARD;
 }
 
 export interface QuizConfig {
   categoryId: number;
   categoryName: string;
-  difficulty: OpenTDBDifficulty;
+  difficulty: ExploreDifficulty;
   timePerQuestion: number; // in seconds
   numberOfQuestions: number;
 }
@@ -24,7 +38,7 @@ export interface QuizResult {
   quizId: string;
   quizTitle: string;
   category: string;
-  difficulty: OpenTDBDifficulty;
+  difficulty: ExploreDifficulty;
   score: number;
   totalPoints: number;
   correctAnswers: number;
@@ -59,7 +73,7 @@ export const DIFFICULTY_POINTS = {
 export const DEFAULT_QUIZ_CONFIG = {
   timePerQuestion: 10, // seconds
   numberOfQuestions: 10,
-  difficulty: 'medium' as OpenTDBDifficulty,
+  difficulty: 'medium' as ExploreDifficulty,
 } as const;
 
 // Configuration limits

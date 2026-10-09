@@ -10,28 +10,32 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Play, Clock, Hash, Trophy, ArrowLeft, Sparkles } from 'lucide-react';
+import { Play, Clock, Hash, ArrowLeft, Sparkles } from 'lucide-react';
 import type { QuizConfig } from '../types';
-import { DEFAULT_QUIZ_CONFIG, QUIZ_CONFIG_LIMITS, DIFFICULTY_POINTS } from '../types';
-import { DIFFICULTY_OPTIONS, QUESTION_PRESETS, TIME_PRESETS, STORAGE_KEYS } from '../constants';
-import type { OpenTDBDifficulty } from '@/adapters';
+import { DEFAULT_QUIZ_CONFIG, QUIZ_CONFIG_LIMITS, DIFFICULTY_POINTS, countForDifficulty, type ExploreDifficulty } from '../types';
+import { QUESTION_PRESETS, TIME_PRESETS, STORAGE_KEYS } from '../constants';
+import { useCategories } from '../hooks/useCategories';
+import { DifficultyPicker } from './DifficultyPicker';
 
 export const QuizConfigPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   
-  // Get category info from URL params
-  const categoryId = parseInt(searchParams.get('categoryId') || '0');
+  const categoryId = searchParams.get('categoryId') ?? '';
   const categoryName = searchParams.get('categoryName') || 'General Knowledge';
   const categoryIcon = searchParams.get('icon') || '🎯';
-  
-  const [difficulty, setDifficulty] = useState<OpenTDBDifficulty>(DEFAULT_QUIZ_CONFIG.difficulty);
+  const { categories } = useCategories();
+  const category = categories.find((item) => item.id === categoryId);
+
+  const [difficulty, setDifficulty] = useState<ExploreDifficulty>(DEFAULT_QUIZ_CONFIG.difficulty);
   const [timePerQuestion, setTimePerQuestion] = useState<number>(DEFAULT_QUIZ_CONFIG.timePerQuestion);
   const [numberOfQuestions, setNumberOfQuestions] = useState<number>(DEFAULT_QUIZ_CONFIG.numberOfQuestions);
 
   const handleStartQuiz = useCallback(() => {
+    if (!category || countForDifficulty(category.counts, difficulty) === 0) return;
+    const externalId = category.externalId ?? '';
     const config: QuizConfig = {
-      categoryId,
+      categoryId: category.externalId ?? 0,
       categoryName,
       difficulty,
       timePerQuestion,
@@ -41,9 +45,8 @@ export const QuizConfigPage = () => {
     // Last-used config (OpenTDBGame reads query params, not this key)
     localStorage.setItem(STORAGE_KEYS.QUIZ_CONFIG, JSON.stringify(config));
 
-    // Navigate to the game with config params
-    navigate(`/play/opentdb?category=${categoryId}&difficulty=${difficulty}&amount=${numberOfQuestions}&time=${timePerQuestion}`);
-  }, [categoryId, categoryName, difficulty, timePerQuestion, numberOfQuestions, navigate]);
+    navigate(`/play/opentdb?category=${externalId}&difficulty=${difficulty}&amount=${numberOfQuestions}&time=${timePerQuestion}`);
+  }, [category, categoryName, difficulty, timePerQuestion, numberOfQuestions, navigate]);
 
   const handleTimeChange = (value: number) => {
     const clamped = Math.min(Math.max(value, QUIZ_CONFIG_LIMITS.MIN_TIME), QUIZ_CONFIG_LIMITS.MAX_TIME);
@@ -84,32 +87,11 @@ export const QuizConfigPage = () => {
         <Card>
           <CardContent className="pt-6 space-y-8">
             {/* Difficulty Selection */}
-            <div className="space-y-4">
-              <Label className="flex items-center gap-2 text-base font-semibold">
-                <Trophy className="h-5 w-5 text-primary" />
-                Difficulty Level
-              </Label>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {DIFFICULTY_OPTIONS.map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => setDifficulty(option.value as OpenTDBDifficulty)}
-                    className={`
-                      relative rounded-xl border-2 p-4 text-center transition-all hover:scale-105
-                      ${difficulty === option.value
-                        ? 'border-primary bg-primary/10 ring-2 ring-primary/20 shadow-lg'
-                        : 'border-muted hover:border-primary/50 hover:bg-muted/50'
-                      }
-                    `}
-                  >
-                    <div className="text-lg font-bold">{option.label}</div>
-                    <div className={`text-sm font-medium ${option.color}`}>
-                      {option.points} pts per question
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
+            <DifficultyPicker
+              value={difficulty}
+              counts={category?.counts}
+              onChange={setDifficulty}
+            />
 
             {/* Time Per Question */}
             <div className="space-y-4">
@@ -214,10 +196,11 @@ export const QuizConfigPage = () => {
           >
             <Link to="/explore">Cancel</Link>
           </Button>
-          <Button 
-            onClick={handleStartQuiz} 
+          <Button
+            onClick={handleStartQuiz}
             size="lg"
             className="flex-1 gap-2 text-lg"
+            disabled={!category || countForDifficulty(category.counts, difficulty) === 0}
           >
             <Play className="h-5 w-5" />
             Start Quiz

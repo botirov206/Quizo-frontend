@@ -1,36 +1,11 @@
-/**
- * Quiz Feature Public API
- * Re-exports the quiz creator, hooks, schemas, and helpers
- */
-
-// Components
 export { QuizCreator } from './components/QuizCreator';
 
-// Hooks
-export { useCreateQuiz } from './hooks/useCreateQuiz';
-export { useQuizAutoSave } from './hooks/useQuizAutoSave';
-
-// Constants
 export {
-  QUIZ_VALIDATION,
-  DEFAULT_QUIZ_VALUES,
-  DEFAULT_QUESTION,
-  DEFAULT_OPTIONS_COUNT,
-  QUIZ_STORAGE_KEYS,
-  QUIZ_TIMING,
-  DIFFICULTY_OPTIONS,
-  QUESTION_TYPE_OPTIONS,
-} from './constants';
+  useCategories,
+  useQuizList,
+  useCreateQuiz,
+  useDeleteQuiz,
+  useQuizPreview,
+} from './api';
 
-// Utilities
-export {
-  generateOptionId,
-  resetOptionIdCounter,
-  createOption,
-  createOptions,
-  mapFormDataToQuiz,
-} from './utils';
-
-// Types & Schemas
-export { quizFormSchema, questionSchema } from './types';
-export type { QuizFormData, QuestionFormData } from './types';
+export type { QuizListItem, QuizPreview, CategoryItem } from '@/api/types';

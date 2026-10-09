@@ -1,19 +1,25 @@
-/**
- * Quiz Grid
- * Loading, error, empty, and card-grid states for quiz lists
- */
-
-import type { StandardQuiz } from '@/types/quiz';
+import type { QuizListItem } from '@/features/quiz';
+import { getErrorMessage } from '@/lib/api-error';
 import { QuizCard } from './QuizCard';
 import { Loader2, AlertCircle } from 'lucide-react';
 
 interface QuizGridProps {
-  quizzes?: StandardQuiz[];
+  quizzes?: QuizListItem[];
   isLoading?: boolean;
   error?: Error | null;
+  canManage?: boolean;
+  onDelete?: (id: string) => void;
+  deletingId?: string;
 }
 
-export const QuizGrid = ({ quizzes, isLoading, error }: QuizGridProps) => {
+export const QuizGrid = ({
+  quizzes,
+  isLoading,
+  error,
+  canManage,
+  onDelete,
+  deletingId,
+}: QuizGridProps) => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -27,7 +33,7 @@ export const QuizGrid = ({ quizzes, isLoading, error }: QuizGridProps) => {
       <div className="flex flex-col items-center justify-center py-12 gap-2">
         <AlertCircle className="h-8 w-8 text-destructive" />
         <p className="text-sm text-muted-foreground">Failed to load quizzes</p>
-        <p className="text-xs text-muted-foreground">{error.message}</p>
+        <p className="text-xs text-muted-foreground">{getErrorMessage(error)}</p>
       </div>
     );
   }
@@ -43,7 +49,13 @@ export const QuizGrid = ({ quizzes, isLoading, error }: QuizGridProps) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {quizzes.map((quiz) => (
-        <QuizCard key={quiz.id} quiz={quiz} />
+        <QuizCard
+          key={quiz.id}
+          quiz={quiz}
+          canManage={canManage}
+          onDelete={onDelete}
+          deletePending={deletingId === quiz.id}
+        />
       ))}
     </div>
   );

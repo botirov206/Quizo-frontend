@@ -41,3 +41,7 @@ export function isAuthError(error: unknown): boolean {
     (error.response?.status === 401 || error.response?.status === 403)
   );
 }
+
+export function isNotFoundError(error: unknown): boolean {
+  return axios.isAxiosError(error) && error.response?.status === 404;
+}
