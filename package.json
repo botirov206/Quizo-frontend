@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "typecheck": "tsc -b",
+    "api:types": "openapi-typescript ../kahoot-backend/openapi.json -o src/api/schema.d.ts",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -21,6 +23,7 @@
     "@radix-ui/react-switch": "^1.2.6",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@react-oauth/google": "^0.13.4",
+    "@sentry/react": "^11.6.0",
     "@tanstack/react-query": "^5.90.16",
     "axios": "^1.13.2",
     "class-variance-authority": "^0.7.1",
@@ -46,6 +49,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
+    "openapi-typescript": "^7.13.0",
     "postcss": "^8.5.6",
     "tailwindcss": "3.4.17",
     "typescript": "~5.9.3",
