@@ -1,3 +1,8 @@
+/**
+ * App Sidebar
+ * Role-aware dashboard navigation shell
+ */
+
 import * as React from "react"
 import { GraduationCap, Home, BookOpen, Users, Settings, LifeBuoy, Sparkles, PlusCircle, BarChart3, ClipboardList } from "lucide-react"
 
@@ -97,7 +102,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <GraduationCap className="size-4" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">Quizo</span>
+                  <span className="truncate font-semibold">Kahoot.uz</span>
                   <span className="truncate text-xs">Platform</span>
                 </div>
               </a>

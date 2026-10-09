@@ -1,3 +1,8 @@
+/**
+ * Secondary Navigation
+ * Compact sidebar links for support and settings
+ */
+
 import type { LucideIcon } from "lucide-react"
 import { Link } from "react-router-dom"
 

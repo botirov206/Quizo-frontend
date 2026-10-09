@@ -1,3 +1,8 @@
+/**
+ * Landing Header
+ * Sticky nav for the public landing page
+ */
+
 import { useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';

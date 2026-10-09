@@ -1,3 +1,8 @@
+/**
+ * Main Navigation
+ * Primary sidebar links with active-route highlighting
+ */
+
 import type { LucideIcon } from "lucide-react"
 import { Link, useLocation } from "react-router-dom"
 

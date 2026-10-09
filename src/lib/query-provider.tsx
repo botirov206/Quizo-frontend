@@ -1,3 +1,8 @@
+/**
+ * Query Provider
+ * Shared TanStack Query client and default cache options
+ */
+
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 
@@ -16,6 +21,7 @@ interface QueryProviderProps {
   children: ReactNode;
 }
 
+/** Wraps the app with the shared QueryClient */
 export const QueryProvider = ({ children }: QueryProviderProps) => {
   return (
     <QueryClientProvider client={queryClient}>

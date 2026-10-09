@@ -1,3 +1,8 @@
+/**
+ * User Navigation
+ * Sidebar footer with avatar, account menu, and logout
+ */
+
 import {
   BadgeCheck,
   Bell,

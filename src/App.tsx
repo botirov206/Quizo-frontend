@@ -1,3 +1,8 @@
+/**
+ * App Routes
+ * Top-level React Router setup and auth-gated pages
+ */
+
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { LoginForm } from '@/features/auth/components/LoginForm';
 import { RegisterForm } from '@/features/auth/components/RegisterForm';
@@ -53,6 +58,8 @@ const AppRoutes = () => {
       
       {/* Classroom Feature */}
       <Route path="/classrooms" element={user ? <ClassroomPage /> : <Navigate to="/login" />} />
+
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 };
