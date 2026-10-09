@@ -1,4 +1,7 @@
-// Public API for auth feature
+/**
+ * Auth Feature Public API
+ * Re-exports login, register, and session helpers
+ */
 
 // Components
 export { LoginForm } from './components/LoginForm';

@@ -1,3 +1,8 @@
+/**
+ * Register Hook
+ * Registration form state and password-match validation
+ */
+
 import { useState, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import type { AuthFormState } from '../types';
@@ -12,6 +17,7 @@ export interface RegisterFormData {
   role?: 'student' | 'teacher';
 }
 
+/** Submits registration data and tracks loading/error state */
 export const useRegister = () => {
   const { register } = useAuth();
   const [state, setState] = useState<AuthFormState>(INITIAL_AUTH_FORM_STATE);

@@ -1,4 +1,7 @@
-// Auth feature types
+/**
+ * Auth Feature Types
+ * Login credentials and form-state shapes
+ */
 export interface LoginCredentials {
   email: string;
   password: string;

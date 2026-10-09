@@ -1,3 +1,8 @@
+/**
+ * Logout Button
+ * Signs the current user out of the session
+ */
+
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 

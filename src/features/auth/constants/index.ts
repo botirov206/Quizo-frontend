@@ -1,4 +1,7 @@
-// Auth constants public API
+/**
+ * Auth Constants Public API
+ * Re-exports validation limits, messages, and form defaults
+ */
 export {
   MAX_INPUT_LENGTH,
   MAX_NAME_LENGTH,

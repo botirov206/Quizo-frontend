@@ -1,3 +1,8 @@
+/**
+ * Auth Context
+ * Session state, login/register/logout, and localStorage persistence
+ */
+
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import type { User } from '@/types/auth';
@@ -31,6 +36,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+/** Provides auth state and actions to the React tree */
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -146,7 +152,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-// Custom Hook for easy usage
+/** Access the current auth context; must be used inside AuthProvider */
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

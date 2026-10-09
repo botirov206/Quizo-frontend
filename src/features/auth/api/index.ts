@@ -1,5 +1,6 @@
 /**
- * Auth API exports
+ * Auth API Public Exports
+ * Re-exports authentication API functions and types
  */
 
 export {

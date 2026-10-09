@@ -1,8 +1,14 @@
+/**
+ * Login Hook
+ * Email/password and Google login form state
+ */
+
 import { useState, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import type { LoginCredentials, AuthFormState } from '../types';
 import { INITIAL_AUTH_FORM_STATE, AUTH_ERROR_MESSAGES } from '../constants';
 
+/** Submits credentials and tracks loading/error state */
 export const useLogin = () => {
   const { login, loginWithGoogle } = useAuth();
   const [state, setState] = useState<AuthFormState>(INITIAL_AUTH_FORM_STATE);

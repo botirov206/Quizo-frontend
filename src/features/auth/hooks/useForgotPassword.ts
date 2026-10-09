@@ -1,7 +1,13 @@
+/**
+ * Forgot Password Hook
+ * Email capture and mock password-reset submit flow
+ */
+
 import { useState, useCallback } from 'react';
 import type { ForgotPasswordState } from '../types/index';
 import { INITIAL_FORGOT_PASSWORD_STATE, AUTH_ERROR_MESSAGES, AUTH_MOCK_DELAYS } from '../constants';
 
+/** Manages forgot-password form state and submit handlers */
 export const useForgotPassword = () => {
   const [state, setState] = useState<ForgotPasswordState>(INITIAL_FORGOT_PASSWORD_STATE);
 
@@ -16,7 +22,7 @@ export const useForgotPassword = () => {
       // TODO: Implement actual password reset API call
       await new Promise((resolve) => setTimeout(resolve, AUTH_MOCK_DELAYS.FORGOT_PASSWORD));
       setState((prev) => ({ ...prev, sent: true, loading: false }));
-    } catch (_err) {
+    } catch {
       setState((prev) => ({ ...prev, error: AUTH_ERROR_MESSAGES.PASSWORD_RESET_FAILED, loading: false }));
     }
   }, []);

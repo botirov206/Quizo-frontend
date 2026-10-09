@@ -1,3 +1,8 @@
+/**
+ * Register Form
+ * New-account form with optional teacher role and Google sign-in
+ */
+
 import { useState, useCallback } from 'react';
 import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
 import { Button } from '@/components/ui/button';
