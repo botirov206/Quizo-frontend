@@ -1,3 +1,8 @@
+/**
+ * Vite Config
+ * React plugin, `@` alias, and production preview host settings
+ */
+
 import path from "path"
 import react from "@vitejs/plugin-react"
 import { defineConfig } from "vite"

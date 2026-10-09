@@ -1,4 +1,5 @@
 {
+  /* Root TypeScript config: path aliases and project references */
   "files": [],
   "references": [
     {

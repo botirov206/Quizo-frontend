@@ -1,3 +1,8 @@
+/**
+ * Application Entry
+ * Mounts React with Google OAuth, React Query, and auth providers
+ */
+
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { GoogleOAuthProvider } from '@react-oauth/google'
@@ -7,8 +12,9 @@ import { AuthProvider } from './context/AuthContext'
 import { QueryProvider } from './lib/query-provider'
 import { Toaster } from 'sonner'
 
-// Google OAuth Client ID
-const GOOGLE_CLIENT_ID = '120374159777-33ajrnj0pt50sdifvg3lgr63h4a1mdat.apps.googleusercontent.com'
+const GOOGLE_CLIENT_ID =
+  import.meta.env.VITE_GOOGLE_CLIENT_ID ||
+  '120374159777-33ajrnj0pt50sdifvg3lgr63h4a1mdat.apps.googleusercontent.com'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
