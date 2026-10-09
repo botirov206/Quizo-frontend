@@ -1,3 +1,8 @@
+/**
+ * Recent Activity
+ * List of latest quiz attempts with retry actions
+ */
+
 import { useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';

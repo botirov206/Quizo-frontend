@@ -1,3 +1,8 @@
+/**
+ * Breadcrumb Hook
+ * Maps the current path to dashboard breadcrumb items
+ */
+
 import { useLocation } from 'react-router-dom';
 import { useMemo } from 'react';
 
@@ -29,6 +34,7 @@ const breadcrumbMap: Record<string, BreadcrumbItem[]> = {
   ],
 };
 
+/** Returns breadcrumb items for the current dashboard route */
 export const useBreadcrumb = (): BreadcrumbItem[] => {
   const location = useLocation();
 

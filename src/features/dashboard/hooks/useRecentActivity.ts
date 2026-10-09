@@ -1,3 +1,8 @@
+/**
+ * Recent Activity Hook
+ * Fetches cached recent quiz attempts
+ */
+
 import { useQuery } from '@tanstack/react-query';
 import type { QuizAttempt } from '../types';
 import { MOCK_RECENT_ACTIVITY } from '../data/mock-student-stats';

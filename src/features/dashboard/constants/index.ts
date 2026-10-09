@@ -1,4 +1,7 @@
-// Dashboard constants public API
+/**
+ * Dashboard Constants Public API
+ * Re-exports delays, labels, query keys, and chart config
+ */
 export {
   MOCK_API_DELAY,
   MOCK_ERROR_RATE,

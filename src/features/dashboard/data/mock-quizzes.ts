@@ -1,3 +1,8 @@
+/**
+ * Mock Quiz Data
+ * Sample quizzes for dashboard development
+ */
+
 import type { StandardQuiz } from '@/types/quiz';
 
 export const MOCK_QUIZZES: StandardQuiz[] = [

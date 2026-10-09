@@ -34,7 +34,7 @@ export const TeacherQuickActions: FC = () => {
     {
       label: 'View Results',
       icon: BarChart3,
-      onClick: () => navigate('/results'),
+      onClick: () => navigate('/classrooms'),
       variant: 'outline' as const,
     },
     {

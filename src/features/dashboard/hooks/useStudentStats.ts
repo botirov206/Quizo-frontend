@@ -1,3 +1,8 @@
+/**
+ * Student Stats Hook
+ * Fetches cached student dashboard statistics
+ */
+
 import { useQuery } from '@tanstack/react-query';
 import type { StudentStats } from '../types';
 import { MOCK_STUDENT_STATS } from '../data/mock-student-stats';

@@ -1,3 +1,8 @@
+/**
+ * Quizzes Page
+ * Browse and launch quizzes inside the dashboard layout
+ */
+
 import type { FC } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from './DashboardLayout';

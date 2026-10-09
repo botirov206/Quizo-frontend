@@ -1,3 +1,8 @@
+/**
+ * Quiz Grid
+ * Loading, error, empty, and card-grid states for quiz lists
+ */
+
 import type { StandardQuiz } from '@/types/quiz';
 import { QuizCard } from './QuizCard';
 import { Loader2, AlertCircle } from 'lucide-react';

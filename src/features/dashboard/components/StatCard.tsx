@@ -1,3 +1,8 @@
+/**
+ * Stat Card
+ * Single metric tile with icon and optional trend
+ */
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle2, TrendingUp, Flame, Clock } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';

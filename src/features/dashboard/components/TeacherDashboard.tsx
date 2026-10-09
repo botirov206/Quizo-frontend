@@ -7,7 +7,7 @@
  * - Total students enrolled count
  * - Average class score
  * - Recent activity feed
- * - Quick actions: Create Quiz, Generate Code, View Results
+ * - Quick actions: Create Quiz, Manage Classes, Copy Class Code
  */
 
 import type { FC } from 'react';

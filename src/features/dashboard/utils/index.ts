@@ -1,4 +1,7 @@
-// Dashboard utilities public API
+/**
+ * Dashboard Utilities Public API
+ * Re-exports quiz-card and stats formatting helpers
+ */
 export { getDifficultyColor, getSourceBadge, getSourceBadgeColor, formatTimeLimit } from './quizCardUtils';
 export {
   getPerformanceLevel,

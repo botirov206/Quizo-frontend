@@ -1,3 +1,8 @@
+/**
+ * Quick Actions
+ * Shortcuts to browse quizzes or join by 6-character code
+ */
+
 import { useCallback, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';

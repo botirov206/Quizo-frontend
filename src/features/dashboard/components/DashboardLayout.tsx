@@ -1,3 +1,8 @@
+/**
+ * Dashboard Layout
+ * Sidebar, breadcrumbs, and inset content shell
+ */
+
 import type { FC } from 'react';
 import type { DashboardLayoutProps } from '../types';
 import { useBreadcrumb } from '../hooks/useBreadcrumb';

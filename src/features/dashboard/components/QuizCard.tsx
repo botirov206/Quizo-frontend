@@ -1,3 +1,8 @@
+/**
+ * Quiz Card
+ * Preview card for a quiz with play navigation
+ */
+
 import { useCallback } from 'react';
 import type { StandardQuiz } from '@/types/quiz';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';

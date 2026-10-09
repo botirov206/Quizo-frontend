@@ -9,8 +9,8 @@
  * 
  * Students see:
  * - Learning progress
- * - Quiz history
- * - Achievements
+ * - Quiz history (mock)
+ * - Join-by-code and browse-quizzes shortcuts
  */
 
 import type { FC } from 'react';

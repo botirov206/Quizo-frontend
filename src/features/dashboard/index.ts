@@ -1,4 +1,7 @@
-// Public API for dashboard feature
+/**
+ * Dashboard Feature Public API
+ * Re-exports dashboard pages, stats widgets, and data hooks
+ */
 
 // Components
 export { Dashboard } from './components/Dashboard';

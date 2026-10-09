@@ -1,3 +1,8 @@
+/**
+ * Score Chart
+ * SVG line chart of recent quiz scores
+ */
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MOCK_SCORE_HISTORY } from '../data/mock-student-stats';
 import { useMemo, useRef, useState, useEffect, useCallback } from 'react';
