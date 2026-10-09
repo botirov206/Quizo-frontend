@@ -1,5 +1,6 @@
 import type { FC } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { startCustomPlay, playHref } from '@/features/play';
 import { useDeleteQuiz, useQuizList } from '@/features/quiz';
 import { toastApiError } from '@/lib/toast-api-error';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -65,14 +66,20 @@ export const MyQuizzesList: FC = () => {
                     </Badge>
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    {quiz.questionCount} questions · {quiz.timePerQuestion}s · {quiz.quizKey}
+                    {quiz.questionCount} {quiz.questionCount === 1 ? 'question' : 'questions'} · {quiz.timePerQuestion}s · {quiz.quizKey}
                   </p>
                 </div>
                 <div className="flex items-center gap-1">
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => navigate(`/quiz/${quiz.id}/play`, { state: { quizKey: quiz.quizKey } })}
+                    onClick={() => {
+                      void startCustomPlay(quiz.quizKey)
+                        .then((started) => {
+                          navigate(playHref(started.sessionId, started.quizId ?? quiz.id));
+                        })
+                        .catch((error: unknown) => toastApiError(error));
+                    }}
                     aria-label="Play quiz"
                   >
                     <Play className="h-4 w-4" />

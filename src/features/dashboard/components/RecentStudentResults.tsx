@@ -7,10 +7,10 @@ import type { FC } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { SCORE_THRESHOLDS } from '../constants';
-import type { StudentResult } from '../hooks/useTeacherStats';
+import type { TeacherRecentResult } from '@/api/types';
 
 interface RecentStudentResultsProps {
-  results: StudentResult[];
+  results: TeacherRecentResult[];
 }
 
 const getScoreColor = (percentage: number): string => {
@@ -55,11 +55,9 @@ export const RecentStudentResults: FC<RecentStudentResultsProps> = ({ results })
           </div>
         ) : (
           <div className="space-y-4">
-            {results.slice(0, 5).map((result, index) => {
-              const percentage = Math.round((result.score / result.totalQuestions) * 100);
-              return (
+            {results.slice(0, 5).map((result) => (
                 <div
-                  key={`${result.studentId}-${result.quizId}-${index}`}
+                  key={`${result.studentId}-${result.quizId}-${result.completedAt}`}
                   className="flex items-center gap-4"
                 >
                   <Avatar className="h-10 w-10">
@@ -75,17 +73,16 @@ export const RecentStudentResults: FC<RecentStudentResultsProps> = ({ results })
                   </div>
                   <div className="text-right">
                     <div
-                      className={`inline-flex items-center px-2 py-1 rounded-md text-sm font-medium ${getScoreColor(percentage)}`}
+                      className={`inline-flex items-center px-2 py-1 rounded-md text-sm font-medium ${getScoreColor(result.percentage)}`}
                     >
-                      {result.score}/{result.totalQuestions}
+                      {Math.round(result.percentage)}%
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
                       {formatTimeAgo(result.completedAt)}
                     </p>
                   </div>
                 </div>
-              );
-            })}
+            ))}
           </div>
         )}
       </CardContent>

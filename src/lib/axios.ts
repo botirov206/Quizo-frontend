@@ -42,7 +42,7 @@ let refreshInFlight: Promise<string> | null = null;
 
 function refreshAccessToken(): Promise<string> {
   if (refreshInFlight) return refreshInFlight;
-  refreshInFlight = apiClient
+  const pending = apiClient
     .post<RefreshResponse>('/auth/refresh')
     .then((response) => {
       setAccessToken(response.data.accessToken);
@@ -51,7 +51,8 @@ function refreshAccessToken(): Promise<string> {
     .finally(() => {
       refreshInFlight = null;
     });
-  return refreshInFlight;
+  refreshInFlight = pending;
+  return pending;
 }
 
 apiClient.interceptors.response.use(
@@ -78,13 +79,5 @@ apiClient.interceptors.response.use(
     return apiClient(config);
   },
 );
-
-export const openTDBClient: AxiosInstance = axios.create({
-  baseURL: 'https://opentdb.com',
-  timeout: 15000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
 
 export default apiClient;

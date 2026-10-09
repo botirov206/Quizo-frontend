@@ -91,7 +91,7 @@ export const StudentList: FC<StudentListProps> = ({
                   </Avatar>
                   <div>
                     <p className="font-medium">{student.name}</p>
-                    <p className="text-sm text-muted-foreground">{student.email}</p>
+                    <p className="text-sm text-muted-foreground">{student.email || 'No email'}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">

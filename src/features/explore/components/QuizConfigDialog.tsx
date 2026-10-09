@@ -17,9 +17,11 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Play, Clock, Hash } from 'lucide-react';
-import type { Category, QuizConfig, ExploreDifficulty } from '../types';
-import { DEFAULT_QUIZ_CONFIG, QUIZ_CONFIG_LIMITS, DIFFICULTY_POINTS, countForDifficulty } from '../types';
-import { QUESTION_PRESETS, TIME_PRESETS, STORAGE_KEYS } from '../constants';
+import { toastApiError } from '@/lib/toast-api-error';
+import { startPlaySession, toApiDifficulty } from '@/features/play';
+import type { Category, ExploreDifficulty } from '../types';
+import { DEFAULT_QUIZ_CONFIG, QUIZ_CONFIG_LIMITS, DIFFICULTY_POINTS, countForDifficulty, questionChoices, questionsToStart } from '../types';
+import { QUESTION_PRESETS, TIME_PRESETS } from '../constants';
 import { DifficultyPicker } from './DifficultyPicker';
 
 interface QuizConfigDialogProps {
@@ -35,24 +37,32 @@ export const QuizConfigDialog = ({ category, isOpen, onClose }: QuizConfigDialog
   const [timePerQuestion, setTimePerQuestion] = useState<number>(DEFAULT_QUIZ_CONFIG.timePerQuestion);
   const [numberOfQuestions, setNumberOfQuestions] = useState<number>(DEFAULT_QUIZ_CONFIG.numberOfQuestions);
 
+  const [starting, setStarting] = useState(false);
+
   const handleStartQuiz = useCallback(() => {
-    if (!category) return;
-
-    if (countForDifficulty(category.counts, difficulty) === 0) return;
-
-    const config: QuizConfig = {
-      categoryId: category.externalId ?? 0,
-      categoryName: category.name,
-      difficulty,
-      timePerQuestion,
+    if (!category || starting) return;
+    const amount = questionsToStart(
       numberOfQuestions,
-    };
-
-    localStorage.setItem(STORAGE_KEYS.QUIZ_CONFIG, JSON.stringify(config));
-
-    navigate(`/play/opentdb?category=${category.externalId ?? ''}&difficulty=${difficulty}&amount=${numberOfQuestions}&time=${timePerQuestion}`);
-    onClose();
-  }, [category, difficulty, timePerQuestion, numberOfQuestions, navigate, onClose]);
+      countForDifficulty(category.counts, difficulty),
+    );
+    if (amount < 1) return;
+    setStarting(true);
+    void startPlaySession({
+      source: 'OPENTDB',
+      categoryId: category.id,
+      difficulty: toApiDifficulty(difficulty),
+      amount,
+      timePerQuestion,
+    })
+      .then((session) => {
+        onClose();
+        navigate(`/play/${session.id}`);
+      })
+      .catch((error: unknown) => {
+        toastApiError(error);
+        setStarting(false);
+      });
+  }, [category, difficulty, navigate, numberOfQuestions, onClose, starting, timePerQuestion]);
 
   const handleTimeChange = (value: number) => {
     const clamped = Math.min(Math.max(value, QUIZ_CONFIG_LIMITS.MIN_TIME), QUIZ_CONFIG_LIMITS.MAX_TIME);
@@ -65,7 +75,9 @@ export const QuizConfigDialog = ({ category, isOpen, onClose }: QuizConfigDialog
   };
 
   const selectedDifficultyPoints = DIFFICULTY_POINTS[difficulty];
-  const maxPossiblePoints = numberOfQuestions * selectedDifficultyPoints;
+  const available = countForDifficulty(category?.counts, difficulty);
+  const shownCount = available ? Math.min(numberOfQuestions, available) : numberOfQuestions;
+  const maxPossiblePoints = shownCount * selectedDifficultyPoints;
 
   if (!category) return null;
 
@@ -130,17 +142,17 @@ export const QuizConfigDialog = ({ category, isOpen, onClose }: QuizConfigDialog
             <div className="flex items-center gap-3">
               <Input
                 type="number"
-                value={numberOfQuestions}
+                value={shownCount}
                 onChange={(e) => handleQuestionsChange(parseInt(e.target.value) || 10)}
                 min={QUIZ_CONFIG_LIMITS.MIN_QUESTIONS}
                 max={QUIZ_CONFIG_LIMITS.MAX_QUESTIONS}
                 className="w-24"
               />
               <div className="flex flex-wrap gap-1">
-                {QUESTION_PRESETS.map((preset) => (
+                {questionChoices(available, QUESTION_PRESETS).map((preset) => (
                   <Button
                     key={preset}
-                    variant={numberOfQuestions === preset ? 'default' : 'outline'}
+                    variant={shownCount === preset ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setNumberOfQuestions(preset)}
                     className="px-2 py-1 h-8"
@@ -160,7 +172,7 @@ export const QuizConfigDialog = ({ category, isOpen, onClose }: QuizConfigDialog
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Total time:</span>
-              <span className="font-medium">{Math.ceil((timePerQuestion * numberOfQuestions) / 60)} min</span>
+              <span className="font-medium">{Math.ceil((timePerQuestion * shownCount) / 60)} min</span>
             </div>
             <div className="flex justify-between text-base font-semibold border-t pt-2 mt-2">
               <span>Max possible points:</span>
@@ -176,7 +188,7 @@ export const QuizConfigDialog = ({ category, isOpen, onClose }: QuizConfigDialog
           <Button
             onClick={handleStartQuiz}
             className="gap-2"
-            disabled={countForDifficulty(category.counts, difficulty) === 0}
+            disabled={!available || starting}
           >
             <Play className="h-4 w-4" />
             Start Quiz

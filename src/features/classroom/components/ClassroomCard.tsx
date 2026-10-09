@@ -7,7 +7,7 @@ import type { FC } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Users, BookOpen, Copy, MoreHorizontal, Trash2, LogOut } from 'lucide-react';
+import { Users, Copy, MoreHorizontal, Trash2, LogOut } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -102,11 +102,7 @@ export const ClassroomCard: FC<ClassroomCardProps> = ({
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
           <div className="flex items-center gap-1">
             <Users className="h-4 w-4" />
-            <span>{classroom.studentIds.length} students</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <BookOpen className="h-4 w-4" />
-            <span>{classroom.quizIds.length} quizzes</span>
+            <span>{classroom.studentCount} {classroom.studentCount === 1 ? 'student' : 'students'}</span>
           </div>
         </div>
         {!isTeacher && (

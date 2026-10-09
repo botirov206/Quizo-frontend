@@ -9,23 +9,11 @@ export { QuizzesPage } from './components/QuizzesPage';
 export { DashboardLayout } from './components/DashboardLayout';
 export { QuizCard } from './components/QuizCard';
 export { QuizGrid } from './components/QuizGrid';
-export { StatCard } from './components/StatCard';
-export { ScoreChart } from './components/ScoreChart';
-export { RecentActivity } from './components/RecentActivity';
-export { QuickActions } from './components/QuickActions';
-
-// Teacher-specific components
-export { TeacherDashboard } from './components/TeacherDashboard';
-export { StudentDashboard } from './components/StudentDashboard';
-export { TeacherStats } from './components/TeacherStats';
+export { HistoryPage } from './components/HistoryPage';
 export { MyQuizzesList } from './components/MyQuizzesList';
 export { RecentStudentResults } from './components/RecentStudentResults';
-export { TeacherQuickActions } from './components/TeacherQuickActions';
 
-// Hooks
-export { useStudentStats } from './hooks/useStudentStats';
-export { useRecentActivity } from './hooks/useRecentActivity';
-export { useTeacherStats } from './hooks/useTeacherStats';
+export { useStudentStats, useTeacherStats, useHistory } from './hooks/useAccountStats';
 
 // Constants
 export {
@@ -60,4 +48,3 @@ export {
 
 // Types
 export type { DashboardLayoutProps, StudentStats, QuizAttempt, ScoreDataPoint } from './types';
-export type { TeacherStats as TeacherStatsType, TeacherQuiz, StudentResult } from './hooks/useTeacherStats';

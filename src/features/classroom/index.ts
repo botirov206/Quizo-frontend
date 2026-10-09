@@ -13,8 +13,8 @@ export { StudentList } from './components/StudentList';
 export { ResultsGrid } from './components/ResultsGrid';
 
 // Hooks
-export { useClassrooms, useClassroomById, useClassroomStudents } from './hooks/useClassrooms';
-export { useClassroomActions, generateClassroomCode } from './hooks/useClassroomActions';
+export { useClassrooms, useClassroomStudents } from './hooks/useClassrooms';
+export { useClassroomActions } from './hooks/useClassroomActions';
 export { useClassroomResults, transformToGridData } from './hooks/useClassroomResults';
 
 // Constants

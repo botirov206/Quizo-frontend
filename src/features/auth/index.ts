@@ -3,7 +3,7 @@ export { RegisterForm } from './components/RegisterForm';
 export { LogoutButton } from './components/LogoutButton';
 export { ForgotPasswordForm } from './components/ForgotPasswordForm';
 export { ResetPasswordForm } from './components/ResetPasswordForm';
-export { RequireAuth } from './components/RequireAuth';
+export { GuestRoute, RequireAuth } from './components/RequireAuth';
 export { RequireRole } from './components/RequireRole';
 
 export { useLogin } from './hooks/useLogin';

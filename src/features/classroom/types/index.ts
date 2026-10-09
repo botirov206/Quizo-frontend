@@ -6,13 +6,11 @@
 export interface Classroom {
   id: string;
   name: string;
-  code: string; // 6-character alphanumeric join code
+  code: string;
   teacherId: string;
   teacherName: string;
-  studentIds: string[];
-  quizIds: string[];
+  studentCount: number;
   createdAt: string;
-  updatedAt?: string;
 }
 
 export interface ClassroomStudent {

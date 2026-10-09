@@ -15,6 +15,17 @@ export interface Category {
   icon?: string;
 }
 
+export function questionsToStart(requested: number, available: number | undefined): number {
+  if (!available || available < 1) return 0;
+  return Math.min(requested, available);
+}
+
+export function questionChoices(available: number | undefined, presets: readonly number[]): number[] {
+  if (!available || available < 1) return [];
+  const fitting = presets.filter((preset) => preset <= available);
+  return fitting.includes(available) ? [...fitting] : [available, ...fitting];
+}
+
 export function countForDifficulty(
   counts: Category['counts'] | undefined,
   difficulty: ExploreDifficulty,
@@ -78,7 +89,7 @@ export const DEFAULT_QUIZ_CONFIG = {
 
 // Configuration limits
 export const QUIZ_CONFIG_LIMITS = {
-  MIN_QUESTIONS: 5,
+  MIN_QUESTIONS: 1,
   MAX_QUESTIONS: 50,
   MIN_TIME: 5,
   MAX_TIME: 60,

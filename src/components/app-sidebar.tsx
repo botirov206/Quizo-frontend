@@ -4,10 +4,9 @@
  */
 
 import * as React from "react"
-import { GraduationCap, Home, BookOpen, Users, Settings, LifeBuoy, Sparkles, PlusCircle, BarChart3, ClipboardList } from "lucide-react"
+import { Home, BookOpen, Users, Sparkles, PlusCircle, ClipboardList, History } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
-import { NavSecondary } from "@/components/nav-secondary"
 import { NavUser } from "@/components/nav-user"
 import {
   Sidebar,
@@ -42,43 +41,14 @@ const baseNavItems = [
 
 // Teacher-specific navigation items
 const teacherNavItems = [
-  {
-    title: "My Quizzes",
-    url: "/quizzes",
-    icon: ClipboardList,
-  },
-  {
-    title: "Create Quiz",
-    url: "/quiz/create",
-    icon: PlusCircle,
-  },
-  {
-    title: "Analytics",
-    url: "/analytics",
-    icon: BarChart3,
-  },
+  { title: "Create Quiz", url: "/quiz/create", icon: PlusCircle },
+  { title: "My Quizzes", url: "/quizzes", icon: ClipboardList },
+  { title: "History", url: "/history", icon: History },
 ]
 
-// Student-specific navigation items
 const studentNavItems = [
-  {
-    title: "My Quizzes",
-    url: "/quizzes",
-    icon: BookOpen,
-  },
-]
-
-const navSecondary = [
-  {
-    title: "Settings",
-    url: "/settings",
-    icon: Settings,
-  },
-  {
-    title: "Help & Support",
-    url: "/support",
-    icon: LifeBuoy,
-  },
+  { title: "Quizzes", url: "/quizzes", icon: BookOpen },
+  { title: "History", url: "/history", icon: History },
 ]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -86,10 +56,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   // Build navigation based on user role
   const navMain = React.useMemo(() => {
-    const isTeacher = user?.role === 'teacher'
-    const roleItems = isTeacher ? teacherNavItems : studentNavItems
-    
-    return [...baseNavItems, ...roleItems]
+    const teaches = user?.role === 'teacher' || user?.role === 'admin'
+    if (teaches) {
+      return [
+        baseNavItems[0],
+        teacherNavItems[0],
+        teacherNavItems[1],
+        baseNavItems[2],
+        baseNavItems[1],
+        teacherNavItems[2],
+      ]
+    }
+    return [...baseNavItems, ...studentNavItems]
   }, [user?.role])
   return (
     <Sidebar style={{ border: 'none' }} collapsible="icon" {...props}>
@@ -98,12 +76,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <a href="/dashboard">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  <GraduationCap className="size-4" />
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground font-bold">
+                  K
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">Kahoot.uz</span>
-                  <span className="truncate text-xs">Platform</span>
                 </div>
               </a>
             </SidebarMenuButton>
@@ -112,7 +89,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={navMain} />
-        <NavSecondary items={navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
         <NavUser />

@@ -32,6 +32,15 @@ const breadcrumbMap: Record<string, BreadcrumbItem[]> = {
     { label: 'Dashboard', href: '/dashboard' },
     { label: 'Create Quiz', current: true },
   ],
+  '/history': [
+    { label: 'Dashboard', href: '/dashboard' },
+    { label: 'History', current: true },
+  ],
+  '/explore/configure': [
+    { label: 'Dashboard', href: '/dashboard' },
+    { label: 'Explore', href: '/explore' },
+    { label: 'Practice', current: true },
+  ],
 };
 
 /** Returns breadcrumb items for the current dashboard route */
@@ -44,29 +53,9 @@ export const useBreadcrumb = (): BreadcrumbItem[] => {
       return breadcrumbMap[location.pathname];
     }
 
-    // Check for quiz play route pattern (/quiz/:id/play)
-    const quizPlayMatch = location.pathname.match(/^\/quiz\/[^/]+\/play$/);
-    if (quizPlayMatch) {
-      return [
-        { label: 'Dashboard', href: '/dashboard' },
-        { label: 'Quizzes', href: '/quizzes' },
-        { label: 'Playing Quiz', current: true },
-      ];
-    }
-
-    // Check for OpenTDB play route (/play/opentdb)
-    if (location.pathname.startsWith('/play/opentdb')) {
-      return [
-        { label: 'Dashboard', href: '/dashboard' },
-        { label: 'Explore', href: '/explore' },
-        { label: 'Playing Quiz', current: true },
-      ];
-    }
-
-    // Default fallback
     return [
       { label: 'Dashboard', href: '/dashboard' },
-      { label: 'Current Page', current: true },
+      { label: 'Page', current: true },
     ];
   }, [location.pathname]);
 };

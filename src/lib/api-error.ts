@@ -45,3 +45,8 @@ export function isAuthError(error: unknown): boolean {
 export function isNotFoundError(error: unknown): boolean {
   return axios.isAxiosError(error) && error.response?.status === 404;
 }
+
+export function getErrorCode(error: unknown): string | undefined {
+  if (!axios.isAxiosError(error)) return undefined;
+  return readEnvelope(error.response?.data)?.code;
+}

@@ -24,9 +24,9 @@ export const Dashboard: FC = () => {
   if (!user) return null;
 
   // Role-based dashboard rendering
-  if (user.role === 'teacher') {
-    return <TeacherDashboard />;
+  if (user.role === 'student') {
+    return <StudentDashboard />;
   }
 
-  return <StudentDashboard />;
+  return <TeacherDashboard />;
 };

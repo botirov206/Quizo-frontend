@@ -15,6 +15,7 @@ import { CreateClassDialog } from './CreateClassDialog';
 import { StudentList } from './StudentList';
 import { ResultsGrid } from './ResultsGrid';
 import { CLASSROOM_SUCCESS_MESSAGES } from '../constants';
+import { AssignQuiz } from './AssignQuiz';
 
 export const TeacherClassroom: FC = () => {
   const { data, isLoading } = useClassrooms();
@@ -96,7 +97,7 @@ export const TeacherClassroom: FC = () => {
             Create and manage your classrooms
             {data && data.classrooms.length > 0 && (
               <span className="ml-2">
-                ({data.classrooms.length} classrooms • {data.totalStudents} students)
+                ({data.classrooms.length} {data.classrooms.length === 1 ? 'classroom' : 'classrooms'} • {data.totalStudents} {data.totalStudents === 1 ? 'student' : 'students'})
               </span>
             )}
           </p>
@@ -167,6 +168,7 @@ export const TeacherClassroom: FC = () => {
                 onRemoveStudent={handleRemoveStudent}
                 isRemovingStudent={isRemovingStudent}
               />
+              <AssignQuiz classroomId={selectedClassroom.id} />
             </div>
           ) : (
             <div className="text-center py-12 border rounded-lg bg-muted/30">

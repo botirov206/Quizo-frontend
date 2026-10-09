@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Play, ArrowLeft } from 'lucide-react';
+import { startPlaySession, playHref } from '@/features/play';
 import { useQuizPreview } from '@/features/quiz';
 import { getErrorMessage, isNotFoundError } from '@/lib/api-error';
 import { toastApiError } from '@/lib/toast-api-error';
@@ -17,6 +18,7 @@ export const JoinPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [quizCode, setQuizCode] = useState(() => sanitizeKey(searchParams.get('code') ?? ''));
+  const [starting, setStarting] = useState(false);
   const previewQuery = useQuizPreview(quizCode);
   const preview = previewQuery.data;
   const notFound = isNotFoundError(previewQuery.error);
@@ -25,9 +27,16 @@ export const JoinPage = () => {
     if (previewQuery.error && !notFound) toastApiError(previewQuery.error);
   }, [previewQuery.error, notFound]);
 
-  const start = () => {
-    if (!preview) return;
-    navigate(`/quiz/${preview.id}/play`, { state: { quizKey: quizCode } });
+  const start = async () => {
+    if (!preview || starting) return;
+    setStarting(true);
+    try {
+      const session = await startPlaySession({ source: 'CUSTOM', quizKey: quizCode });
+      navigate(playHref(session.id, preview.id));
+    } catch (error) {
+      toastApiError(error);
+      setStarting(false);
+    }
   };
 
   return (
@@ -92,7 +101,7 @@ export const JoinPage = () => {
               {preview && (
                 <div className="rounded-lg border p-4 space-y-1 text-sm">
                   <p className="text-lg font-semibold">{preview.title}</p>
-                  <p>{preview.questionCount} questions</p>
+                  <p>{preview.questionCount} {preview.questionCount === 1 ? 'question' : 'questions'}</p>
                   <p className="capitalize">{preview.difficulty.toLowerCase()}</p>
                   <p>{preview.timePerQuestion} seconds per question</p>
                   <p>
@@ -101,7 +110,7 @@ export const JoinPage = () => {
                 </div>
               )}
 
-              <Button type="submit" className="w-full h-12 text-lg" disabled={!preview}>
+              <Button type="submit" className="w-full h-12 text-lg" disabled={!preview || starting}>
                 <Play className="h-5 w-5 mr-2" />
                 Start
               </Button>

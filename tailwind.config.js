@@ -7,6 +7,10 @@ export default {
   ],
   theme: {
   	extend: {
+  		fontFamily: {
+  			sans: ['"Source Sans 3"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+  			display: ['Outfit', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+  		},
   		borderRadius: {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
@@ -52,6 +56,12 @@ export default {
   				'3': 'hsl(var(--chart-3))',
   				'4': 'hsl(var(--chart-4))',
   				'5': 'hsl(var(--chart-5))'
+  			},
+  			play: {
+  				red: 'hsl(var(--play-red))',
+  				blue: 'hsl(var(--play-blue))',
+  				yellow: 'hsl(var(--play-yellow))',
+  				green: 'hsl(var(--play-green))',
   			},
   			sidebar: {
   				DEFAULT: 'hsl(var(--sidebar-background))',

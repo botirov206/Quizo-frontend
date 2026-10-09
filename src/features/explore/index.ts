@@ -8,11 +8,9 @@ export { CategoryBrowser } from './components/CategoryBrowser';
 export { CategoryCard } from './components/CategoryCard';
 export { QuizConfigDialog } from './components/QuizConfigDialog';
 export { QuizConfigPage } from './components/QuizConfigPage';
-export { OpenTDBGame } from './components/OpenTDBGame';
 
 // Hooks
 export { useCategories } from './hooks/useCategories';
-export { useQuizResults } from './hooks/useQuizResults';
 
 // Types
 export type { Category, QuizConfig, QuizResult, QuizResultsStorage } from './types';

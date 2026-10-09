@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { QuizListItem } from '@/features/quiz';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Clock, Book, Award, Key, Copy, Trash2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { startCustomPlay, playHref } from '@/features/play';
+import { toastApiError } from '@/lib/toast-api-error';
 import { getDifficultyColor } from '../utils';
 
 interface QuizCardProps {
@@ -17,10 +19,18 @@ interface QuizCardProps {
 export const QuizCard = ({ quiz, canManage, onDelete, deletePending }: QuizCardProps) => {
   const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
+  const [starting, setStarting] = useState(false);
   const difficulty = quiz.difficulty.toLowerCase();
 
   const play = () => {
-    navigate(`/quiz/${quiz.id}/play`, { state: { quizKey: quiz.quizKey } });
+    if (starting) return;
+    setStarting(true);
+    void startCustomPlay(quiz.quizKey)
+      .then((started) => navigate(playHref(started.sessionId, started.quizId ?? quiz.id)))
+      .catch((error: unknown) => {
+        toastApiError(error);
+        setStarting(false);
+      });
   };
 
   const copyKey = () => {
@@ -55,7 +65,7 @@ export const QuizCard = ({ quiz, canManage, onDelete, deletePending }: QuizCardP
             <span className={`capitalize px-2 py-0.5 rounded text-xs font-medium ${getDifficultyColor(difficulty)}`}>
               {difficulty}
             </span>
-            <span>{quiz.questionCount} questions</span>
+            <span>{quiz.questionCount} {quiz.questionCount === 1 ? 'question' : 'questions'}</span>
           </div>
           {canManage && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -69,7 +79,7 @@ export const QuizCard = ({ quiz, canManage, onDelete, deletePending }: QuizCardP
           )}
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="flex-1" onClick={play}>
+          <Button variant="outline" className="flex-1" onClick={play} disabled={starting}>
             Play Now
           </Button>
           {canManage && onDelete && (

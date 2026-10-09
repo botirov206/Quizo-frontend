@@ -80,7 +80,7 @@ export const StudentClassroom: FC = () => {
             Join classrooms and take quizzes assigned by your teachers
             {data && data.classrooms.length > 0 && (
               <span className="ml-2">
-                ({data.classrooms.length} classrooms enrolled)
+                ({data.classrooms.length} {data.classrooms.length === 1 ? 'classroom' : 'classrooms'} enrolled)
               </span>
             )}
           </p>

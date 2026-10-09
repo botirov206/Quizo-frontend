@@ -49,3 +49,25 @@ export type QuizListResponse =
 export type CreateQuizBody = NonNullable<
   paths['/api/v1/quizzes']['post']['requestBody']
 >['content']['application/json'];
+
+export type PlaySessionStart = Schemas['PlaySessionStart'];
+export type PlayerQuestion = Schemas['PlayerQuestion'];
+export type PlayAnswer = Schemas['PlayAnswer'];
+export type PlayResult = Schemas['PlayResult'];
+export type Leaderboard = Schemas['Leaderboard'];
+export type MeStats = Schemas['MeStats'];
+export type HistoryList = paths['/api/v1/me/history']['get']['responses'][200]['content']['application/json'];
+export type TeacherStats = Schemas['TeacherStats'];
+export type TeacherRecentResult = Schemas['TeacherRecentResult'];
+export type Classroom = Schemas['Classroom'];
+export type ClassroomList = paths['/api/v1/classrooms']['get']['responses'][200]['content']['application/json'];
+export type ClassroomMember = Schemas['ClassroomMember'];
+export type ClassroomResults = Schemas['ClassroomResults'];
+
+export type PlayStartRequest = NonNullable<
+  paths['/api/v1/play-sessions']['post']['requestBody']
+>['content']['application/json'];
+
+export type PlayAnswerRequest = NonNullable<
+  paths['/api/v1/play-sessions/{id}/answers']['post']['requestBody']
+>['content']['application/json'];

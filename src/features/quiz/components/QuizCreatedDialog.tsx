@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -9,7 +10,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { CheckCircle, Copy } from 'lucide-react';
+import { CheckCircle, Copy, Play } from 'lucide-react';
+import { startCustomPlay, playHref } from '@/features/play';
+import { toastApiError } from '@/lib/toast-api-error';
 
 interface QuizCreatedDialogProps {
   quizKey: string | null;
@@ -17,13 +20,26 @@ interface QuizCreatedDialogProps {
 }
 
 export const QuizCreatedDialog = ({ quizKey, onClose }: QuizCreatedDialogProps) => {
+  const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
+  const [playing, setPlaying] = useState(false);
 
   const copyKey = () => {
     if (!quizKey) return;
     void navigator.clipboard.writeText(quizKey);
     setCopied(true);
     window.setTimeout(() => setCopied(false), 2000);
+  };
+
+  const play = () => {
+    if (!quizKey || playing) return;
+    setPlaying(true);
+    void startCustomPlay(quizKey)
+      .then((started) => navigate(playHref(started.sessionId, started.quizId)))
+      .catch((error: unknown) => {
+        toastApiError(error);
+        setPlaying(false);
+      });
   };
 
   return (
@@ -51,7 +67,11 @@ export const QuizCreatedDialog = ({ quizKey, onClose }: QuizCreatedDialogProps) 
 
         {copied && <p className="text-sm text-green-600 text-center">Copied to clipboard!</p>}
 
-        <AlertDialogFooter className="sm:justify-center">
+        <AlertDialogFooter className="sm:justify-center gap-2">
+          <Button type="button" className="w-full sm:w-auto" onClick={play} disabled={playing}>
+            <Play className="mr-2 h-4 w-4" />
+            {playing ? 'Starting…' : 'Play it'}
+          </Button>
           <AlertDialogAction className="w-full sm:w-auto">Go to Dashboard</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

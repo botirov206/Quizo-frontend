@@ -38,9 +38,4 @@ export default defineConfig([
       'max-lines': ['error', fileSize],
     },
   },
-  {
-    // Removed when round 4 deletes OpenTDBGame.
-    files: ['src/features/explore/components/OpenTDBGame.tsx'],
-    rules: { 'max-lines': 'off' },
-  },
 ])
