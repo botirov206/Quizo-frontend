@@ -6,7 +6,7 @@
 export interface Classroom {
   id: string;
   name: string;
-  code: string; // 6-digit alphanumeric join code
+  code: string; // 6-character alphanumeric join code
   teacherId: string;
   teacherName: string;
   studentIds: string[];

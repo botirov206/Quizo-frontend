@@ -1,5 +1,7 @@
-// Standard Quiz Types - The Single Source of Truth
-// All quiz data must conform to these interfaces
+/**
+ * Standard Quiz Types
+ * Single source of truth for quiz, question, and game-state shapes
+ */
 
 export interface StandardQuestion {
   id: string;

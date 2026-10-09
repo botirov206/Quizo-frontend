@@ -1,5 +1,11 @@
+/**
+ * Quiz Form Schemas
+ * Zod validators for quiz and question form data
+ */
+
 import { z } from 'zod';
 
+/** Validation schema for a single question */
 export const questionSchema = z.object({
   text: z.string().min(5, 'Question must be at least 5 characters'),
   type: z.enum(['multiple-choice', 'true-false']),
@@ -16,6 +22,7 @@ export const questionSchema = z.object({
   { message: 'Correct answer must match one of the option IDs', path: ['correctAnswerId'] }
 );
 
+/** Validation schema for the full quiz form */
 export const quizFormSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters').max(100, 'Title too long'),
   description: z.string().min(10, 'Description must be at least 10 characters').max(500, 'Description too long'),

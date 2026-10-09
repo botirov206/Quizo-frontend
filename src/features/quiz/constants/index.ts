@@ -1,4 +1,7 @@
-// Quiz constants public API
+/**
+ * Quiz Constants Public API
+ * Re-exports validation limits, defaults, and option lists
+ */
 export {
   QUIZ_VALIDATION,
   DEFAULT_QUIZ_VALUES,

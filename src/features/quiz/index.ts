@@ -1,4 +1,7 @@
-// Public API for quiz feature
+/**
+ * Quiz Feature Public API
+ * Re-exports the quiz creator, hooks, schemas, and helpers
+ */
 
 // Components
 export { QuizCreator } from './components/QuizCreator';

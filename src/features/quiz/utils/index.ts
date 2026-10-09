@@ -1,4 +1,7 @@
-// Quiz utilities public API
+/**
+ * Quiz Utilities Public API
+ * Re-exports option helpers and form-to-quiz mapping
+ */
 export {
   generateOptionId,
   resetOptionIdCounter,

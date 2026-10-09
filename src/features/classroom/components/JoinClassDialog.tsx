@@ -1,6 +1,6 @@
 /**
  * JoinClassDialog Component
- * Dialog for students to join a classroom via 6-digit code
+ * Dialog for students to join a classroom via 6-character code
  */
 
 import type { FC } from 'react';
@@ -72,7 +72,7 @@ export const JoinClassDialog: FC<JoinClassDialogProps> = ({
         <DialogHeader>
           <DialogTitle>Join Classroom</DialogTitle>
           <DialogDescription>
-            Enter the 6-digit code provided by your teacher to join a classroom.
+            Enter the 6-character code provided by your teacher to join a classroom.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>

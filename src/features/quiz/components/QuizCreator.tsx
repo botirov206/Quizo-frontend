@@ -1,3 +1,8 @@
+/**
+ * Quiz Creator
+ * Multi-question form for teachers to build and save quizzes
+ */
+
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useRef, useCallback, useState } from 'react';
@@ -83,8 +88,6 @@ export const QuizCreator = () => {
   // }, [loadQuiz, reset]);
 
   // NOTE: Auto-save feature disabled - was causing issues with stale data
-  // When re-enabling, uncomment the function body below
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleAutoSave = useCallback(() => {
     // Auto-save disabled
     // if (autoSaveTimerRef.current) {
@@ -106,7 +109,7 @@ export const QuizCreator = () => {
   }, []);
 
   // Handle validation errors (for debugging, can be removed)
-  const onFormError = (_validationErrors: unknown) => {
+  const onFormError = () => {
     // Validation errors are shown inline in the form
   };
 
@@ -132,7 +135,7 @@ export const QuizCreator = () => {
       // Show success dialog with quiz key
       setCreatedQuizKey(result.quizKey);
       setShowSuccess(true);
-    } catch (err) {
+    } catch {
       // Error is handled by useCreateQuiz hook
     }
   };
