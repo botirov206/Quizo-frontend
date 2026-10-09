@@ -1,158 +1,138 @@
-/**
- * Auth Context
- * Session state, login/register/logout, and localStorage persistence
- */
-
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
+import type { AuthResponse } from '@/api/types';
+import {
+  googleAuthApi,
+  loginApi,
+  logoutApi,
+  refreshApi,
+  registerApi,
+  telegramAuthApi,
+} from '@/features/auth/api';
+import { toApiRole, toUser, type SignupRole } from '@/features/auth/utils';
+import { clearAccessToken, onAuthFailure, setAccessToken } from '@/lib/token';
 import type { User } from '@/types/auth';
-import { loginApi, registerApi, googleAuthApi, type BackendUser } from '@/features/auth/api';
-import { getErrorMessage } from '@/lib/axios';
-
-/**
- * Convert backend user to app user format
- */
-const convertToAppUser = (backendUser: BackendUser): User => ({
-  id: backendUser.id,
-  email: backendUser.email,
-  name: `${backendUser.firstName} ${backendUser.lastName}`.trim(),
-  firstName: backendUser.firstName,
-  lastName: backendUser.lastName,
-  // Map 'user' role to 'student' for UI compatibility
-  role: backendUser.role === 'user' ? 'student' : backendUser.role,
-  totalScore: backendUser.totalScore,
-  quizzesPlayed: backendUser.quizzesPlayed,
-});
 
 interface AuthContextType {
   user: User | null;
-  token: string | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
-  register: (firstName: string, lastName: string, email: string, password: string, role?: 'student' | 'teacher') => Promise<void>;
-  loginWithGoogle: (googleToken: string) => Promise<void>;
+  logout: () => Promise<void>;
+  register: (
+    firstName: string,
+    lastName: string,
+    email: string,
+    password: string,
+    role?: SignupRole,
+  ) => Promise<void>;
+  loginWithGoogle: (credential: string, role?: SignupRole) => Promise<void>;
+  loginWithTelegram: (idToken: string, role?: SignupRole) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-/** Provides auth state and actions to the React tree */
+let sessionBootstrap: Promise<AuthResponse> | null = null;
+
+function loadSession(): Promise<AuthResponse> {
+  sessionBootstrap ??= refreshApi().finally(() => {
+    sessionBootstrap = null;
+  });
+  return sessionBootstrap;
+}
+
+function acceptSession(session: AuthResponse, setUser: (user: User) => void): void {
+  setAccessToken(session.accessToken);
+  setUser(toUser(session.user));
+}
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Check LocalStorage on Load (Persistence)
   useEffect(() => {
-    try {
-      const storedToken = localStorage.getItem('token');
-      const storedUser = localStorage.getItem('user');
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    let active = true;
 
-      if (storedToken && storedUser) {
-        setToken(storedToken);
-        setUser(JSON.parse(storedUser));
-      }
-    } catch (error) {
-      console.error('Failed to load auth from localStorage:', error);
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-    } finally {
-      setIsLoading(false);
-    }
+    loadSession()
+      .then((session) => {
+        if (active) acceptSession(session, setUser);
+      })
+      .catch(() => {
+        if (active) setUser(null);
+      })
+      .finally(() => {
+        if (active) setIsLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
   }, []);
 
-  // Helper to save auth data
-  const saveAuthData = useCallback((authToken: string, authUser: User) => {
-    setToken(authToken);
-    setUser(authUser);
-    localStorage.setItem('token', authToken);
-    localStorage.setItem('user', JSON.stringify(authUser));
+  useEffect(() => {
+    onAuthFailure(() => setUser(null));
   }, []);
 
-  // Login with email and password
   const login = useCallback(async (email: string, password: string) => {
-    try {
-      const response = await loginApi({ email, password });
-      
-      // Convert backend user to app user format
-      const appUser = convertToAppUser(response.user);
-      
-      saveAuthData(response.token, appUser);
-    } catch (error) {
-      const message = getErrorMessage(error);
-      throw new Error(message || 'Login failed');
-    }
-  }, [saveAuthData]);
+    acceptSession(await loginApi({ email, password }), setUser);
+  }, []);
 
-  // Register new user
   const register = useCallback(async (
     firstName: string,
     lastName: string,
     email: string,
     password: string,
-    role: 'student' | 'teacher' = 'student'
+    role: SignupRole = 'student',
   ) => {
-    try {
-      // Map 'student' to 'user' for backend API (backend uses 'user' role)
-      const backendRole = role === 'student' ? 'user' : 'teacher';
-      
-      const response = await registerApi({
-        firstName,
-        lastName,
-        email,
-        password,
-        role: backendRole,
-      });
-      
-      // Convert backend user to app user format
-      const appUser = convertToAppUser(response.user);
-      
-      saveAuthData(response.token, appUser);
-    } catch (error) {
-      const message = getErrorMessage(error);
-      throw new Error(message || 'Registration failed');
-    }
-  }, [saveAuthData]);
+    acceptSession(await registerApi({
+      firstName,
+      lastName,
+      email,
+      password,
+      role: toApiRole(role),
+    }), setUser);
+  }, []);
 
-  // Login with Google OAuth
-  const loginWithGoogle = useCallback(async (googleToken: string) => {
-    try {
-      const response = await googleAuthApi(googleToken);
-      
-      // Convert backend user to app user format
-      const appUser = convertToAppUser(response.user);
-      
-      saveAuthData(response.token, appUser);
-    } catch (error) {
-      const message = getErrorMessage(error);
-      throw new Error(message || 'Google authentication failed');
-    }
-  }, [saveAuthData]);
+  const loginWithGoogle = useCallback(async (credential: string, role?: SignupRole) => {
+    acceptSession(await googleAuthApi({
+      token: credential,
+      role: role ? toApiRole(role) : undefined,
+    }), setUser);
+  }, []);
 
-  // Logout
-  const logout = useCallback(() => {
-    setToken(null);
+  const loginWithTelegram = useCallback(async (idToken: string, role?: SignupRole) => {
+    acceptSession(await telegramAuthApi({
+      idToken,
+      role: role ? toApiRole(role) : undefined,
+    }), setUser);
+  }, []);
+
+  const logout = useCallback(async () => {
+    try {
+      await logoutApi();
+    } catch {
+      // Local session still ends when the server cannot be reached.
+    }
+    clearAccessToken();
     setUser(null);
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
   }, []);
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      token, 
-      isLoading, 
-      login, 
-      logout, 
+    <AuthContext.Provider value={{
+      user,
+      isLoading,
+      login,
+      logout,
       register,
-      loginWithGoogle 
+      loginWithGoogle,
+      loginWithTelegram,
     }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-/** Access the current auth context; must be used inside AuthProvider */
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

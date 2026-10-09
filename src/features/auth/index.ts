@@ -1,47 +1,24 @@
-/**
- * Auth Feature Public API
- * Re-exports login, register, and session helpers
- */
-
-// Components
 export { LoginForm } from './components/LoginForm';
 export { RegisterForm } from './components/RegisterForm';
 export { LogoutButton } from './components/LogoutButton';
 export { ForgotPasswordForm } from './components/ForgotPasswordForm';
+export { ResetPasswordForm } from './components/ResetPasswordForm';
+export { RequireAuth } from './components/RequireAuth';
+export { RequireRole } from './components/RequireRole';
 
-// Hooks
 export { useLogin } from './hooks/useLogin';
 export { useRegister, type RegisterFormData } from './hooks/useRegister';
 export { useForgotPassword } from './hooks/useForgotPassword';
 
-// API
-export {
-  loginApi,
-  registerApi,
-  googleAuthApi,
-  getUserProfileApi,
-  type LoginRequest,
-  type RegisterRequest,
-  type GoogleAuthRequest,
-  type BackendUser,
-  type AuthResponse,
-  type UserProfileResponse,
-} from './api';
-
-// Constants
 export {
   MAX_INPUT_LENGTH,
   MAX_NAME_LENGTH,
   MIN_PASSWORD_LENGTH,
   AUTH_VALIDATION_MESSAGES,
-  AUTH_ERROR_MESSAGES,
-  AUTH_STORAGE_KEYS,
   INITIAL_AUTH_FORM_STATE,
   INITIAL_FORGOT_PASSWORD_STATE,
 } from './constants';
 
-// Utilities
-export { createPasteHandler, isPasteValid } from './utils';
-
-// Types
+export { createPasteHandler, isPasteValid, toApiRole, toUser } from './utils';
+export type { SignupRole } from './utils';
 export type { LoginCredentials, AuthFormState, ForgotPasswordState } from './types';

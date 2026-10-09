@@ -4,7 +4,6 @@
  */
 
 import { useState, useCallback } from 'react';
-import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,10 +13,11 @@ import { Eye, EyeOff } from 'lucide-react';
 import { useLogin } from '../hooks/useLogin';
 import { MAX_INPUT_LENGTH } from '../constants';
 import { createPasteHandler } from '../utils';
+import { SocialAuthButtons } from './SocialAuthButtons';
 
 export const LoginForm = () => {
   const navigate = useNavigate();
-  const { loading, error, handleLogin, handleGoogleLogin, clearError } = useLogin();
+  const { loading, error, handleLogin, clearError } = useLogin();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -32,26 +32,6 @@ export const LoginForm = () => {
 
   const handlePaste = createPasteHandler(MAX_INPUT_LENGTH);
 
-  // Google OAuth success handler
-  const onGoogleSuccess = useCallback(async (credentialResponse: CredentialResponse) => {
-    const googleToken = credentialResponse.credential;
-    
-    if (!googleToken) {
-      console.error('No credential received from Google');
-      return;
-    }
-
-    const result = await handleGoogleLogin(googleToken);
-    if (result.success) {
-      navigate('/dashboard');
-    }
-  }, [handleGoogleLogin, navigate]);
-
-  // Google OAuth error handler
-  const onGoogleError = useCallback(() => {
-    console.error('Google Login Failed');
-  }, []);
-
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
       <Card className="w-full max-w-sm">
@@ -60,27 +40,7 @@ export const LoginForm = () => {
           <CardDescription>Welcome back! Please sign in to continue</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Google OAuth Button */}
-          <div className="flex justify-center">
-            <GoogleLogin
-              onSuccess={onGoogleSuccess}
-              onError={onGoogleError}
-              theme="outline"
-              size="large"
-              text="continue_with"
-              width="320"
-              useOneTap
-            />
-          </div>
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">or</span>
-            </div>
-          </div>
+          <SocialAuthButtons useOneTap />
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">

@@ -39,6 +39,7 @@ export function NavUser() {
 
   if (!user) return null
 
+  const accountLabel = user.email ?? user.role
   const initials = user.name
     .split(' ')
     .map(n => n[0])
@@ -62,7 +63,7 @@ export function NavUser() {
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">{user.name}</span>
-                <span className="truncate text-xs">{user.email}</span>
+                <span className="truncate text-xs">{accountLabel}</span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -82,7 +83,7 @@ export function NavUser() {
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">{user.name}</span>
-                  <span className="truncate text-xs">{user.email}</span>
+                  <span className="truncate text-xs">{accountLabel}</span>
                 </div>
               </div>
             </DropdownMenuLabel>
@@ -109,7 +110,7 @@ export function NavUser() {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={logout}>
+            <DropdownMenuItem onClick={() => { void logout(); }}>
               <LogOut className="mr-2 h-4 w-4" />
               Log out
             </DropdownMenuItem>

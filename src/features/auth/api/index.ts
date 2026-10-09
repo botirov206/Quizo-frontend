@@ -1,19 +1,10 @@
-/**
- * Auth API Public Exports
- * Re-exports authentication API functions and types
- */
-
 export {
-  loginApi,
-  registerApi,
+  forgotPasswordApi,
   googleAuthApi,
-  getUserProfileApi,
-  normalizeAuthResponse,
-  type LoginRequest,
-  type RegisterRequest,
-  type GoogleAuthRequest,
-  type BackendUser,
-  type BackendAuthResponse,
-  type AuthResponse,
-  type UserProfileResponse,
+  loginApi,
+  logoutApi,
+  refreshApi,
+  registerApi,
+  resetPasswordApi,
+  telegramAuthApi,
 } from './authApi';

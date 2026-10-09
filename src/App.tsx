@@ -1,14 +1,14 @@
-/**
- * App Routes
- * Top-level React Router setup and auth-gated pages
- */
-
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { LoginForm } from '@/features/auth/components/LoginForm';
-import { RegisterForm } from '@/features/auth/components/RegisterForm';
+import {
+  ForgotPasswordForm,
+  LoginForm,
+  RegisterForm,
+  RequireAuth,
+  RequireRole,
+  ResetPasswordForm,
+} from '@/features/auth';
 import { useAuth } from '@/context/AuthContext';
 import { LandingPage } from '@/pages/LandingPage';
-import { ForgotPasswordForm } from '@/features/auth/components/ForgotPasswordForm';
 import { Dashboard, QuizzesPage } from '@/features/dashboard';
 import { QuizCreator } from '@/features/quiz';
 import { GameEngine, JoinPage } from '@/features/game';
@@ -26,7 +26,6 @@ function App() {
 const AppRoutes = () => {
   const { user, isLoading } = useAuth();
 
-  // Show loading state while auth is being resolved
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -37,27 +36,29 @@ const AppRoutes = () => {
 
   return (
     <Routes>
-      {/* Public Routes */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={!user ? <LoginForm /> : <Navigate to="/dashboard" />} />
       <Route path="/register" element={!user ? <RegisterForm /> : <Navigate to="/dashboard" />} />
       <Route path="/register/teacher" element={!user ? <RegisterForm /> : <Navigate to="/dashboard" />} />
       <Route path="/forgot-password" element={!user ? <ForgotPasswordForm /> : <Navigate to="/dashboard" />} />
+      <Route path="/reset-password" element={<ResetPasswordForm />} />
 
-      {/* Protected Routes */}
-      <Route path="/dashboard" element={user ? <Dashboard /> : <Navigate to="/login" />} />
-      <Route path="/join" element={user ? <JoinPage /> : <Navigate to="/login" />} />
-      <Route path="/quizzes" element={user ? <QuizzesPage /> : <Navigate to="/login" />} />
-      <Route path="/quiz/create" element={user ? <QuizCreator /> : <Navigate to="/login" />} />
-      <Route path="/quiz/:quizId/play" element={user ? <GameEngine /> : <Navigate to="/login" />} />
-      
-      {/* Explore Feature - OpenTDB Categories */}
-      <Route path="/explore" element={user ? <CategoryBrowser /> : <Navigate to="/login" />} />
-      <Route path="/explore/configure" element={user ? <QuizConfigPage /> : <Navigate to="/login" />} />
-      <Route path="/play/opentdb" element={user ? <OpenTDBGame /> : <Navigate to="/login" />} />
-      
-      {/* Classroom Feature */}
-      <Route path="/classrooms" element={user ? <ClassroomPage /> : <Navigate to="/login" />} />
+      <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
+      <Route path="/join" element={<RequireAuth><JoinPage /></RequireAuth>} />
+      <Route path="/quizzes" element={<RequireAuth><QuizzesPage /></RequireAuth>} />
+      <Route
+        path="/quiz/create"
+        element={
+          <RequireRole roles={['teacher', 'admin']}>
+            <QuizCreator />
+          </RequireRole>
+        }
+      />
+      <Route path="/quiz/:quizId/play" element={<RequireAuth><GameEngine /></RequireAuth>} />
+      <Route path="/explore" element={<RequireAuth><CategoryBrowser /></RequireAuth>} />
+      <Route path="/explore/configure" element={<RequireAuth><QuizConfigPage /></RequireAuth>} />
+      <Route path="/play/opentdb" element={<RequireAuth><OpenTDBGame /></RequireAuth>} />
+      <Route path="/classrooms" element={<RequireAuth><ClassroomPage /></RequireAuth>} />
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

@@ -18,27 +18,6 @@ export const AUTH_VALIDATION_MESSAGES = {
   NAME_REQUIRED: 'Name is required',
 } as const;
 
-// Error messages returned from auth operations
-export const AUTH_ERROR_MESSAGES = {
-  INVALID_CREDENTIALS: 'Invalid email or password',
-  REGISTRATION_FAILED: 'Registration failed. Try a different email.',
-  PASSWORD_RESET_FAILED: 'Failed to send reset email. Please try again.',
-  USER_EXISTS: 'User already exists',
-} as const;
-
-// LocalStorage keys
-export const AUTH_STORAGE_KEYS = {
-  TOKEN: 'token',
-  USER: 'user',
-} as const;
-
-// API simulation delays (for mock)
-export const AUTH_MOCK_DELAYS = {
-  LOGIN: 1000,
-  REGISTER: 1000,
-  FORGOT_PASSWORD: 1500,
-} as const;
-
 // Initial auth form state
 export const INITIAL_AUTH_FORM_STATE = {
   loading: false,

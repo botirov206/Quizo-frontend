@@ -5,8 +5,9 @@
 
 import { useState, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { getErrorMessage } from '@/lib/api-error';
 import type { AuthFormState } from '../types';
-import { INITIAL_AUTH_FORM_STATE, AUTH_ERROR_MESSAGES, AUTH_VALIDATION_MESSAGES } from '../constants';
+import { INITIAL_AUTH_FORM_STATE, AUTH_VALIDATION_MESSAGES } from '../constants';
 
 export interface RegisterFormData {
   firstName: string;
@@ -41,8 +42,7 @@ export const useRegister = () => {
       );
       return { success: true };
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : AUTH_ERROR_MESSAGES.REGISTRATION_FAILED;
-      setState({ loading: false, error: errorMessage });
+      setState({ loading: false, error: getErrorMessage(err) });
       return { success: false };
     } finally {
       setState((prev) => ({ ...prev, loading: false }));

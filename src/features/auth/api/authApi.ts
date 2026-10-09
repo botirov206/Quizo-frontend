@@ -1,141 +1,47 @@
-/**
- * Auth API Service
- * Handles all authentication-related API calls to the backend
- */
-
+import type {
+  AuthResponse,
+  ForgotPasswordRequest,
+  GoogleAuthRequest,
+  LoginRequest,
+  RegisterRequest,
+  ResetPasswordRequest,
+  TelegramAuthRequest,
+} from '@/api/types';
 import { apiClient } from '@/lib/axios';
 
-// ============================================================================
-// Types
-// ============================================================================
-
-export interface LoginRequest {
-  email: string;
-  password: string;
+async function postSession(path: string, body: unknown): Promise<AuthResponse> {
+  const { data } = await apiClient.post<AuthResponse>(path, body);
+  return data;
 }
 
-export interface RegisterRequest {
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
-  role: 'user' | 'teacher'; // Backend uses 'user' for students
+export function loginApi(body: LoginRequest): Promise<AuthResponse> {
+  return postSession('/auth/login', body);
 }
 
-export interface GoogleAuthRequest {
-  token: string;
+export function registerApi(body: RegisterRequest): Promise<AuthResponse> {
+  return postSession('/auth/register', body);
 }
 
-export interface BackendUser {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  role: 'user' | 'teacher' | 'admin';
-  totalScore?: number;
-  quizzesPlayed?: number;
+export function googleAuthApi(body: GoogleAuthRequest): Promise<AuthResponse> {
+  return postSession('/auth/google', body);
 }
 
-/**
- * Backend auth response - user data is at root level with token
- * Example: { id, firstName, lastName, email, role, token }
- */
-export interface BackendAuthResponse {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  role: 'user' | 'teacher' | 'admin';
-  token: string;
-  message?: string;
+export function telegramAuthApi(body: TelegramAuthRequest): Promise<AuthResponse> {
+  return postSession('/auth/telegram', body);
 }
 
-/**
- * Normalized auth response for frontend use
- */
-export interface AuthResponse {
-  token: string;
-  user: BackendUser;
-  message?: string;
+export function refreshApi(): Promise<AuthResponse> {
+  return postSession('/auth/refresh', undefined);
 }
 
-/**
- * Normalize backend auth response to frontend format
- */
-export const normalizeAuthResponse = (response: BackendAuthResponse): AuthResponse => ({
-  token: response.token,
-  user: {
-    id: response.id,
-    firstName: response.firstName,
-    lastName: response.lastName,
-    email: response.email,
-    role: response.role,
-  },
-  message: response.message,
-});
-
-export interface UserProfileResponse {
-  firstName: string;
-  lastName: string;
-  email: string;
-  totalScore: number;
-  quizzesPlayed: number;
+export async function logoutApi(): Promise<void> {
+  await apiClient.post('/auth/logout');
 }
 
-// ============================================================================
-// API Endpoints
-// ============================================================================
+export async function forgotPasswordApi(body: ForgotPasswordRequest): Promise<void> {
+  await apiClient.post('/auth/forgot-password', body);
+}
 
-const AUTH_ENDPOINTS = {
-  LOGIN: '/login',
-  REGISTER: '/register',
-  GOOGLE_AUTH: '/auth/google',
-  USER_PROFILE: (userId: string) => `/me/${userId}`,
-} as const;
-
-// ============================================================================
-// API Functions
-// ============================================================================
-
-/**
- * Login with email and password
- */
-export const loginApi = async (credentials: LoginRequest): Promise<AuthResponse> => {
-  const response = await apiClient.post<BackendAuthResponse>(
-    AUTH_ENDPOINTS.LOGIN,
-    credentials
-  );
-  return normalizeAuthResponse(response.data);
-};
-
-/**
- * Register a new user
- */
-export const registerApi = async (userData: RegisterRequest): Promise<AuthResponse> => {
-  const response = await apiClient.post<BackendAuthResponse>(
-    AUTH_ENDPOINTS.REGISTER,
-    userData
-  );
-  return normalizeAuthResponse(response.data);
-};
-
-/**
- * Authenticate with Google OAuth token
- */
-export const googleAuthApi = async (googleToken: string): Promise<AuthResponse> => {
-  const response = await apiClient.post<BackendAuthResponse>(
-    AUTH_ENDPOINTS.GOOGLE_AUTH,
-    { token: googleToken }
-  );
-  return normalizeAuthResponse(response.data);
-};
-
-/**
- * Get user profile and stats
- */
-export const getUserProfileApi = async (userId: string): Promise<UserProfileResponse> => {
-  const response = await apiClient.get<UserProfileResponse>(
-    AUTH_ENDPOINTS.USER_PROFILE(userId)
-  );
-  return response.data;
-};
+export async function resetPasswordApi(body: ResetPasswordRequest): Promise<void> {
+  await apiClient.post('/auth/reset-password', body);
+}

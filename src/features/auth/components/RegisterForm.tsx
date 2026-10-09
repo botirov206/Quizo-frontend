@@ -4,7 +4,6 @@
  */
 
 import { useState, useCallback } from 'react';
-import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,21 +11,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { useRegister } from '../hooks/useRegister';
-import { useLogin } from '../hooks/useLogin';
 import { MAX_INPUT_LENGTH, MAX_NAME_LENGTH } from '../constants';
 import { createPasteHandler } from '../utils';
+import { SocialAuthButtons } from './SocialAuthButtons';
 
 export const RegisterForm = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { loading, error, handleRegister, clearError } = useRegister();
-  const { handleGoogleLogin } = useLogin();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [googleError, setGoogleError] = useState('');
 
   // Determine role from URL path - if path includes '/teacher', set role to 'teacher'
   const isTeacherRegistration = location.pathname.includes('/teacher');
@@ -50,35 +47,9 @@ export const RegisterForm = () => {
   const handleInputPaste = createPasteHandler(MAX_INPUT_LENGTH);
   const handleNamePaste = createPasteHandler(MAX_NAME_LENGTH);
 
-  // Google OAuth success handler
-  const onGoogleSuccess = useCallback(async (credentialResponse: CredentialResponse) => {
-    const googleToken = credentialResponse.credential;
-    
-    if (!googleToken) {
-      console.error('No credential received from Google');
-      setGoogleError('Failed to get Google credentials');
-      return;
-    }
-
-    const result = await handleGoogleLogin(googleToken);
-    if (result.success) {
-      navigate('/dashboard');
-    } else {
-      setGoogleError('Google sign up failed');
-    }
-  }, [handleGoogleLogin, navigate]);
-
-  // Google OAuth error handler
-  const onGoogleError = useCallback(() => {
-    console.error('Google Sign up Failed');
-    setGoogleError('Google sign up failed');
-  }, []);
-
-  // Clear error on input change
   const handleInputChange = useCallback(() => {
     if (error) clearError();
-    if (googleError) setGoogleError('');
-  }, [error, googleError, clearError]);
+  }, [error, clearError]);
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
@@ -94,26 +65,7 @@ export const RegisterForm = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Google OAuth Button */}
-          <div className="flex justify-center">
-            <GoogleLogin
-              onSuccess={onGoogleSuccess}
-              onError={onGoogleError}
-              theme="outline"
-              size="large"
-              text="signup_with"
-              width="320"
-            />
-          </div>
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">or</span>
-            </div>
-          </div>
+          <SocialAuthButtons role={defaultRole} googleText="signup_with" />
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
@@ -203,9 +155,7 @@ export const RegisterForm = () => {
               </div>
             </div>
 
-            {(error || googleError) && (
-              <p className="text-sm text-destructive">{error || googleError}</p>
-            )}
+            {error && <p className="text-sm text-destructive">{error}</p>}
             
             <Button 
               type="submit" 

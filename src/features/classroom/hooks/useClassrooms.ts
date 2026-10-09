@@ -48,11 +48,7 @@ export const useClassrooms = () => {
 
   return useQuery({
     queryKey: [...CLASSROOM_QUERY_KEYS.ALL, user?.id],
-    queryFn: () => {
-      // Map 'user' role to 'student' for classroom fetching
-      const role = user!.role === 'user' ? 'student' : user!.role;
-      return fetchClassrooms(user!.id, role as 'student' | 'teacher' | 'admin');
-    },
+    queryFn: () => fetchClassrooms(user!.id, user!.role),
     enabled: !!user,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });

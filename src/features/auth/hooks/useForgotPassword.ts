@@ -1,13 +1,9 @@
-/**
- * Forgot Password Hook
- * Email capture and mock password-reset submit flow
- */
-
 import { useState, useCallback } from 'react';
+import { getErrorMessage } from '@/lib/api-error';
+import { forgotPasswordApi } from '../api';
 import type { ForgotPasswordState } from '../types/index';
-import { INITIAL_FORGOT_PASSWORD_STATE, AUTH_ERROR_MESSAGES, AUTH_MOCK_DELAYS } from '../constants';
+import { INITIAL_FORGOT_PASSWORD_STATE } from '../constants';
 
-/** Manages forgot-password form state and submit handlers */
 export const useForgotPassword = () => {
   const [state, setState] = useState<ForgotPasswordState>(INITIAL_FORGOT_PASSWORD_STATE);
 
@@ -17,15 +13,15 @@ export const useForgotPassword = () => {
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
+    const submittedEmail = state.email;
     setState((prev) => ({ ...prev, loading: true, error: '' }));
     try {
-      // TODO: Implement actual password reset API call
-      await new Promise((resolve) => setTimeout(resolve, AUTH_MOCK_DELAYS.FORGOT_PASSWORD));
+      await forgotPasswordApi({ email: submittedEmail });
       setState((prev) => ({ ...prev, sent: true, loading: false }));
-    } catch {
-      setState((prev) => ({ ...prev, error: AUTH_ERROR_MESSAGES.PASSWORD_RESET_FAILED, loading: false }));
+    } catch (error) {
+      setState((prev) => ({ ...prev, error: getErrorMessage(error), loading: false }));
     }
-  }, []);
+  }, [state.email]);
 
   const reset = useCallback(() => {
     setState((prev) => ({ ...prev, sent: false, error: '', loading: false }));
