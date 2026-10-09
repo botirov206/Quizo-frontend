@@ -1,5 +1,6 @@
 /**
  * Mocks Public API
+ * Re-exports mock quiz data and lookup helpers
  */
 
 export {

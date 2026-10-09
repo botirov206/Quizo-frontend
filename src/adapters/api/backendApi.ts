@@ -4,8 +4,8 @@
  * 
  * Single Responsibility: HTTP requests only, no data transformation
  * 
- * NOTE: Current backend API has some inconsistencies:
- * - GET /quizzes returns list of quizzes (should be /quizzes but backend uses /quiz)
+ * Endpoints (legacy api.kahoot.uz):
+ * - GET /quiz lists quizzes (no questions)
  * - POST /quiz creates a quiz
  * - POST /quiz/join joins a quiz with quiz_key
  */
@@ -24,10 +24,7 @@ import { BACKEND_CONFIG } from '../constants';
 
 /**
  * Fetches all quizzes from the backend
- * GET /quizzes - Returns array of quizzes (without questions)
- * 
- * NOTE: Backend currently uses /quiz endpoint, should be /quizzes
- * We're adapting to the current backend behavior
+ * GET /quiz — returns array of quizzes without questions
  */
 export const fetchBackendQuizzesRaw = async (): Promise<BackendQuizzesResponse> => {
   const response = await apiClient.get<BackendQuizzesResponse>(
@@ -68,7 +65,7 @@ export const fetchUserQuizzesRaw = async (): Promise<BackendQuizzesResponse> => 
 
 /**
  * Creates a new quiz
- * POST /quiz/create
+ * POST /quiz
  * 
  * Request format:
  * {

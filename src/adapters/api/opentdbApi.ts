@@ -21,7 +21,6 @@ const waitForRateLimit = async (): Promise<void> => {
 
   if (timeSinceLastRequest < minDelay) {
     const waitTime = minDelay - timeSinceLastRequest;
-    console.log(`[OpenTDB] Waiting ${waitTime}ms for rate limit...`);
     await new Promise(resolve => setTimeout(resolve, waitTime));
   }
 };
@@ -71,7 +70,6 @@ export const fetchOpenTDBRaw = async (
     // Handle rate limit (429) with retry
     if (response.status === 429) {
       if (retryCount < OPENTDB_CONFIG.MAX_RETRIES) {
-        console.log(`[OpenTDB] Rate limited (429). Retry ${retryCount + 1}/${OPENTDB_CONFIG.MAX_RETRIES} after ${OPENTDB_CONFIG.RETRY_DELAY}ms`);
         await new Promise(resolve => setTimeout(resolve, OPENTDB_CONFIG.RETRY_DELAY));
         return fetchOpenTDBRaw(options, retryCount + 1);
       }

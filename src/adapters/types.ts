@@ -11,15 +11,6 @@ import type { StandardQuiz, StandardQuestion } from '@/types/quiz';
 
 export type OpenTDBResponseCode = 0 | 1 | 2 | 3 | 4 | 5;
 
-export const OPENTDB_RESPONSE_CODES = {
-  SUCCESS: 0,
-  NO_RESULTS: 1,
-  INVALID_PARAMETER: 2,
-  TOKEN_NOT_FOUND: 3,
-  TOKEN_EMPTY: 4,
-  RATE_LIMIT: 5,
-} as const;
-
 export type OpenTDBDifficulty = 'easy' | 'medium' | 'hard';
 export type OpenTDBType = 'multiple' | 'boolean';
 
