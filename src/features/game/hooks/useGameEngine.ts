@@ -1,3 +1,8 @@
+/**
+ * Game Engine Hook
+ * Reducer-driven quiz play with timer and auto-advance
+ */
+
 import { useReducer, useEffect, useCallback, useRef } from 'react';
 import type { StandardQuiz } from '@/types/quiz';
 import type { UseGameEngineReturn } from '../types';
@@ -5,6 +10,7 @@ import { getCurrentQuestion } from '../types';
 import { gameReducer } from '../reducers/gameReducer';
 import { INITIAL_GAME_STATE, FEEDBACK_DISPLAY_DURATION, TIMER_INTERVAL } from '../constants/gameConstants';
 
+/** Runs quiz play state, timer ticks, and player actions */
 export const useGameEngine = (): UseGameEngineReturn => {
   const [state, dispatch] = useReducer(gameReducer, INITIAL_GAME_STATE);
   const timerRef = useRef<number | undefined>(undefined);

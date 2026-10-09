@@ -1,3 +1,8 @@
+/**
+ * Game Feature Public API
+ * Re-exports play UI, engine hook, reducer, and timing constants
+ */
+
 // Public Components
 export { GameEngine } from './components/GameEngine';
 export { QuestionCard } from './components/QuestionCard';

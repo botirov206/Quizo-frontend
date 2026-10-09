@@ -1,3 +1,8 @@
+/**
+ * Progress Bar
+ * Shows current question index against the quiz total
+ */
+
 import { cn } from '@/lib/utils';
 
 interface ProgressBarProps {

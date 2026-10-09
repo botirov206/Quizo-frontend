@@ -3,7 +3,7 @@
  * Results are stored locally until backend API is connected
  */
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import type { QuizResult, QuizResultsStorage } from '../types';
 import { STORAGE_KEYS } from '../constants';
 
@@ -51,15 +51,8 @@ const generateResultId = (): string => {
  * Hook for managing quiz results
  */
 export const useQuizResults = () => {
-  const [results, setResults] = useState<QuizResult[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
-
-  // Load results on mount
-  useEffect(() => {
-    const loaded = loadResults();
-    setResults(loaded);
-    setIsLoaded(true);
-  }, []);
+  const [results, setResults] = useState<QuizResult[]>(() => loadResults());
+  const [isLoaded] = useState(true);
 
   // Save a new quiz result
   const saveResult = useCallback((result: Omit<QuizResult, 'id' | 'completedAt'>) => {

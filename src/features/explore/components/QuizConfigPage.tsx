@@ -38,7 +38,7 @@ export const QuizConfigPage = () => {
       numberOfQuestions,
     };
 
-    // Save config to localStorage for the game engine to use
+    // Last-used config (OpenTDBGame reads query params, not this key)
     localStorage.setItem(STORAGE_KEYS.QUIZ_CONFIG, JSON.stringify(config));
 
     // Navigate to the game with config params
@@ -121,7 +121,7 @@ export const QuizConfigPage = () => {
                 <Input
                   type="number"
                   value={timePerQuestion}
-                  onChange={(e) => handleTimeChange(parseInt(e.target.value) || 10)}
+                  onChange={(e) => handleTimeChange(parseInt(e.target.value) || DEFAULT_QUIZ_CONFIG.timePerQuestion)}
                   min={QUIZ_CONFIG_LIMITS.MIN_TIME}
                   max={QUIZ_CONFIG_LIMITS.MAX_TIME}
                   className="w-full sm:w-28 text-center text-lg font-semibold"
@@ -152,7 +152,7 @@ export const QuizConfigPage = () => {
                 <Input
                   type="number"
                   value={numberOfQuestions}
-                  onChange={(e) => handleQuestionsChange(parseInt(e.target.value) || 10)}
+                  onChange={(e) => handleQuestionsChange(parseInt(e.target.value) || DEFAULT_QUIZ_CONFIG.numberOfQuestions)}
                   min={QUIZ_CONFIG_LIMITS.MIN_QUESTIONS}
                   max={QUIZ_CONFIG_LIMITS.MAX_QUESTIONS}
                   className="w-full sm:w-28 text-center text-lg font-semibold"

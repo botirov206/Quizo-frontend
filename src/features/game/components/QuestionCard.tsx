@@ -1,3 +1,8 @@
+/**
+ * Question Card
+ * Multiple-choice options with selected and correct-answer states
+ */
+
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';

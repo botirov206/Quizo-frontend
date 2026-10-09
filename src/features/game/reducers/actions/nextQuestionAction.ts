@@ -1,6 +1,12 @@
+/**
+ * Next Question Action
+ * Advances to the next question or finishes the quiz
+ */
+
 import type { GameState } from '../../types';
 import { DEFAULT_TIME_PER_QUESTION } from '../../constants/gameConstants';
 
+/** Moves forward after feedback, or marks the quiz finished */
 export const handleNextQuestion = (state: GameState): GameState => {
   if (!state.quiz) return state;
 

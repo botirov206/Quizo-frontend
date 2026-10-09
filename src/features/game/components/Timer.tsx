@@ -1,3 +1,8 @@
+/**
+ * Question Timer
+ * Countdown display with low-time warning styles
+ */
+
 import { Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 

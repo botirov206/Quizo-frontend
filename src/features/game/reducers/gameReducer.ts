@@ -1,3 +1,8 @@
+/**
+ * Game Reducer
+ * Dispatches quiz-play actions to dedicated handlers
+ */
+
 import type { GameState, GameAction } from '../types';
 import { INITIAL_GAME_STATE } from '../constants/gameConstants';
 import {
@@ -8,6 +13,7 @@ import {
   handleEndQuizEarly,
 } from './actions';
 
+/** Applies a game action and returns the next engine state */
 export function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
     case 'START_QUIZ':

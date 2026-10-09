@@ -1,6 +1,12 @@
+/**
+ * Tick Timer Action
+ * Decrements the question timer and auto-advances on timeout
+ */
+
 import type { GameState } from '../../types';
 import { getCurrentQuestion } from '../../types';
 
+/** Counts down one second; treats timeout as an unanswered question */
 export const handleTickTimer = (state: GameState): GameState => {
   if (state.status !== 'PLAYING') return state;
   

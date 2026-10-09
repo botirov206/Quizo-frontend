@@ -1,6 +1,12 @@
+/**
+ * Select Answer Action
+ * Records a choice and moves into the feedback state
+ */
+
 import type { GameState } from '../../types';
 import { getCurrentQuestion } from '../../types';
 
+/** Scores the selected answer and stores the attempt */
 export const handleSelectAnswer = (state: GameState, answerId: string): GameState => {
   const currentQ = getCurrentQuestion(state);
   if (!currentQ || state.status !== 'PLAYING') return state;

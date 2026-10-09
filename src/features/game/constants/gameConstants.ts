@@ -1,3 +1,8 @@
+/**
+ * Game Constants
+ * Initial engine state and timer/feedback timings
+ */
+
 import type { GameState } from '../types';
 
 export const DEFAULT_TIME_PER_QUESTION = 30; // seconds

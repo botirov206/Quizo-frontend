@@ -1,3 +1,8 @@
+/**
+ * Score Board
+ * End-of-quiz summary with per-question results
+ */
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Trophy, RotateCcw, Home, CheckCircle, XCircle, Clock } from 'lucide-react';
@@ -26,10 +31,13 @@ export const ScoreBoard = ({
   onPlayAgain,
   onGoHome,
 }: ScoreBoardProps) => {
-  const percentage = Math.round((score / totalQuestions) * 100);
-  const averageTime = Math.round(
-    userAnswers.reduce((sum, answer) => sum + answer.timeSpent, 0) / userAnswers.length
-  );
+  const percentage = totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0;
+  const averageTime =
+    userAnswers.length > 0
+      ? Math.round(
+          userAnswers.reduce((sum, answer) => sum + answer.timeSpent, 0) / userAnswers.length
+        )
+      : 0;
 
   const getPerformanceMessage = () => {
     if (percentage >= 90) return { text: 'Outstanding! 🎉', color: 'text-green-600' };

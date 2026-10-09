@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, Play, Home, RotateCcw, Trophy, Clock, CheckCircle2, XCircle, AlertCircle, StopCircle } from 'lucide-react';
 import { fetchOpenTDBQuiz, type OpenTDBDifficulty } from '@/adapters';
 import type { StandardQuiz } from '@/types/quiz';
+import { TIMER_INTERVAL } from '@/features/game';
 import { useQuizResults } from '../hooks/useQuizResults';
 import { DIFFICULTY_POINTS, type QuizResult } from '../types';
 // Leaderboard removed - backend not ready
@@ -52,6 +53,34 @@ interface GameState {
 const FEEDBACK_DURATION = 1500; // 1.5 seconds
 const RATE_LIMIT_WAIT = 6; // 6 seconds countdown
 
+const applyTimeUp = (prev: GameState, timePerQuestion: number): GameState => {
+  const currentQuestion = prev.quiz?.questions[prev.currentQuestionIndex];
+  if (!currentQuestion) return { ...prev, timeLeft: 0 };
+
+  const alreadyRecorded = prev.answers.some((a) => a.questionId === currentQuestion.id);
+  if (alreadyRecorded) {
+    return { ...prev, status: 'FEEDBACK', selectedAnswer: prev.selectedAnswer ?? '', timeLeft: 0 };
+  }
+
+  const answer = {
+    questionId: currentQuestion.id,
+    questionText: currentQuestion.text,
+    selectedAnswer: '',
+    correctAnswer: currentQuestion.correctAnswerId,
+    isCorrect: false,
+    timeSpent: timePerQuestion,
+    pointsEarned: 0,
+  };
+
+  return {
+    ...prev,
+    status: 'FEEDBACK',
+    selectedAnswer: '',
+    timeLeft: 0,
+    answers: [...prev.answers, answer],
+  };
+};
+
 export const OpenTDBGame = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -78,15 +107,13 @@ export const OpenTDBGame = () => {
     timeLeft: timePerQuestion,
     selectedAnswer: null,
     answers: [],
-    questionStartTime: Date.now(),
+    questionStartTime: 0,
     error: null,
     retryCountdown: 0,
   });
 
   // Fetch quiz function
   const fetchQuiz = useCallback(async () => {
-    setState(prev => ({ ...prev, status: 'LOADING', error: null, retryCountdown: 0 }));
-
     const result = await fetchOpenTDBQuiz({
       amount,
       category: categoryId > 0 ? categoryId : undefined,
@@ -118,8 +145,10 @@ export const OpenTDBGame = () => {
   useEffect(() => {
     if (fetchedRef.current) return;
     fetchedRef.current = true;
-    
-    fetchQuiz();
+
+    // OpenTDB fetch; setState runs after await
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- mount-only load, guarded by fetchedRef
+    void fetchQuiz();
 
     return () => {
       if (retryTimerRef.current) {
@@ -154,40 +183,15 @@ export const OpenTDBGame = () => {
     const timer = setInterval(() => {
       setState(prev => {
         if (prev.timeLeft <= 1) {
-          // Time's up - auto submit with no answer
           clearInterval(timer);
-          return handleTimeUp(prev);
+          return applyTimeUp(prev, timePerQuestion);
         }
         return { ...prev, timeLeft: prev.timeLeft - 1 };
       });
-    }, 1000);
+    }, TIMER_INTERVAL);
 
     return () => clearInterval(timer);
-  }, [state.status, state.currentQuestionIndex]);
-
-  // Handle time up
-  const handleTimeUp = (prev: GameState): GameState => {
-    const currentQuestion = prev.quiz?.questions[prev.currentQuestionIndex];
-    if (!currentQuestion) return prev;
-
-    const timeSpent = timePerQuestion;
-    const answer = {
-      questionId: currentQuestion.id,
-      questionText: currentQuestion.text,
-      selectedAnswer: '',
-      correctAnswer: currentQuestion.correctAnswerId,
-      isCorrect: false,
-      timeSpent,
-      pointsEarned: 0,
-    };
-
-    return {
-      ...prev,
-      status: 'FEEDBACK',
-      selectedAnswer: '',
-      answers: [...prev.answers, answer],
-    };
-  };
+  }, [state.status, state.currentQuestionIndex, timePerQuestion]);
 
   // Start the quiz
   const handleStart = useCallback(() => {
@@ -199,60 +203,7 @@ export const OpenTDBGame = () => {
     }));
   }, [timePerQuestion]);
 
-  // Select an answer
-  const handleSelectAnswer = useCallback((answer: string) => {
-    if (state.status !== 'PLAYING') return;
-
-    const currentQuestion = state.quiz?.questions[state.currentQuestionIndex];
-    if (!currentQuestion) return;
-
-    const timeSpent = Math.round((Date.now() - state.questionStartTime) / 1000);
-    const isCorrect = answer === currentQuestion.correctAnswerId;
-    const pointsEarned = isCorrect ? pointsPerQuestion : 0;
-
-    const answerRecord = {
-      questionId: currentQuestion.id,
-      questionText: currentQuestion.text,
-      selectedAnswer: answer,
-      correctAnswer: currentQuestion.correctAnswerId,
-      isCorrect,
-      timeSpent,
-      pointsEarned,
-    };
-
-    setState(prev => ({
-      ...prev,
-      status: 'FEEDBACK',
-      selectedAnswer: answer,
-      score: prev.score + pointsEarned,
-      answers: [...prev.answers, answerRecord],
-    }));
-
-    // Auto advance after feedback
-    setTimeout(() => {
-      setState(prev => {
-        const isLastQuestion = prev.currentQuestionIndex >= (prev.quiz?.questions.length ?? 0) - 1;
-        
-        if (isLastQuestion) {
-          // Save results to localStorage
-          saveQuizResult(prev);
-          return { ...prev, status: 'FINISHED' };
-        }
-
-        return {
-          ...prev,
-          status: 'PLAYING',
-          currentQuestionIndex: prev.currentQuestionIndex + 1,
-          timeLeft: timePerQuestion,
-          selectedAnswer: null,
-          questionStartTime: Date.now(),
-        };
-      });
-    }, FEEDBACK_DURATION);
-  }, [state.status, state.quiz, state.currentQuestionIndex, state.questionStartTime, pointsPerQuestion, timePerQuestion]);
-
-  // Save quiz result
-  const saveQuizResult = (gameState: GameState) => {
+  const saveQuizResult = useCallback((gameState: GameState) => {
     if (!gameState.quiz) return;
 
     const totalPoints = gameState.quiz.questions.length * pointsPerQuestion;
@@ -274,9 +225,65 @@ export const OpenTDBGame = () => {
     };
 
     saveResult(result);
-  };
+  }, [difficulty, pointsPerQuestion, saveResult]);
 
-  // Restart quiz
+  // Auto-advance after feedback (answer selected or timer expired)
+  useEffect(() => {
+    if (state.status !== 'FEEDBACK') return;
+
+    const timeoutId = window.setTimeout(() => {
+      setState((prev) => {
+        const isLastQuestion =
+          prev.currentQuestionIndex >= (prev.quiz?.questions.length ?? 0) - 1;
+
+        if (isLastQuestion) {
+          saveQuizResult(prev);
+          return { ...prev, status: 'FINISHED' };
+        }
+
+        return {
+          ...prev,
+          status: 'PLAYING',
+          currentQuestionIndex: prev.currentQuestionIndex + 1,
+          timeLeft: timePerQuestion,
+          selectedAnswer: null,
+          questionStartTime: Date.now(),
+        };
+      });
+    }, FEEDBACK_DURATION);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [state.status, state.currentQuestionIndex, timePerQuestion, saveQuizResult]);
+
+  const handleSelectAnswer = useCallback((answer: string) => {
+    if (state.status !== 'PLAYING') return;
+
+    const currentQuestion = state.quiz?.questions[state.currentQuestionIndex];
+    if (!currentQuestion) return;
+
+    const timeSpent = Math.round((Date.now() - state.questionStartTime) / 1000);
+    const isCorrect = answer === currentQuestion.correctAnswerId;
+    const pointsEarned = isCorrect ? pointsPerQuestion : 0;
+
+    const answerRecord = {
+      questionId: currentQuestion.id,
+      questionText: currentQuestion.text,
+      selectedAnswer: answer,
+      correctAnswer: currentQuestion.correctAnswerId,
+      isCorrect,
+      timeSpent,
+      pointsEarned,
+    };
+
+    setState((prev) => ({
+      ...prev,
+      status: 'FEEDBACK',
+      selectedAnswer: answer,
+      score: prev.score + pointsEarned,
+      answers: [...prev.answers, answerRecord],
+    }));
+  }, [state.status, state.quiz, state.currentQuestionIndex, state.questionStartTime, pointsPerQuestion]);
+
   const handleRestart = useCallback(() => {
     setState({
       status: 'LOADING',
@@ -297,14 +304,20 @@ export const OpenTDBGame = () => {
   // Leaderboard removed - backend not ready
   // TODO: Add leaderboard when backend API is functional
 
-  // End quiz early - marks remaining questions as incorrect
   const handleEndQuizEarly = useCallback(() => {
-    setState(prev => {
+    setState((prev) => {
       if (!prev.quiz) return prev;
-      
-      // Get remaining unanswered questions
-      const remainingQuestions = prev.quiz.questions.slice(prev.currentQuestionIndex);
-      const unansweredAnswers = remainingQuestions.map(q => ({
+
+      const currentQuestion = prev.quiz.questions[prev.currentQuestionIndex];
+      const currentAlreadyAnswered = currentQuestion
+        ? prev.answers.some((a) => a.questionId === currentQuestion.id)
+        : false;
+      const remainingStartIndex = currentAlreadyAnswered
+        ? prev.currentQuestionIndex + 1
+        : prev.currentQuestionIndex;
+
+      const remainingQuestions = prev.quiz.questions.slice(remainingStartIndex);
+      const unansweredAnswers = remainingQuestions.map((q) => ({
         questionId: q.id,
         questionText: q.text,
         selectedAnswer: '',
@@ -313,24 +326,23 @@ export const OpenTDBGame = () => {
         timeSpent: 0,
         pointsEarned: 0,
       }));
-      
+
       const updatedState = {
         ...prev,
         answers: [...prev.answers, ...unansweredAnswers],
         status: 'FINISHED' as GameStatus,
       };
-      
-      // Save result
+
       saveQuizResult(updatedState);
-      
       return updatedState;
     });
-  }, []);
+  }, [saveQuizResult]);
 
   // Retry after rate limit
   const handleRetryAfterRateLimit = useCallback(() => {
     fetchedRef.current = false;
-    fetchQuiz();
+    setState((prev) => ({ ...prev, status: 'LOADING', error: null, retryCountdown: 0 }));
+    void fetchQuiz();
   }, [fetchQuiz]);
 
   // Render based on status
@@ -375,7 +387,7 @@ export const OpenTDBGame = () => {
                 onClick={handleRetryAfterRateLimit}
                 disabled={state.retryCountdown > 0}
               >
-                <RotateCcw className={`h-4 w-4 mr-2 ${state.retryCountdown > 0 ? '' : ''}`} />
+                <RotateCcw className="h-4 w-4 mr-2" />
                 {state.retryCountdown > 0 ? `Wait ${state.retryCountdown}s` : 'Try Again'}
               </Button>
             </div>
@@ -667,7 +679,7 @@ export const OpenTDBGame = () => {
 
               {/* Result saved notice */}
               <div className="text-center text-sm text-muted-foreground">
-                ✓ Result saved to your history
+                ✓ Result saved on this device
               </div>
             </CardContent>
           </Card>

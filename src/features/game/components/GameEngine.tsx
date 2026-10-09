@@ -1,4 +1,9 @@
-import { useEffect, useState } from 'react';
+/**
+ * Game Engine
+ * Loads a quiz and renders play, feedback, and results screens
+ */
+
+import { useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +15,7 @@ import { ProgressBar } from './ProgressBar';
 import { ScoreBoard } from './ScoreBoard';
 import type { StandardQuiz } from '@/types/quiz';
 import { joinQuiz } from '@/adapters';
+import { DEFAULT_TIME_PER_QUESTION } from '../constants/gameConstants';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -54,13 +60,6 @@ export const GameEngine = () => {
   const locationState = location.state as LocationState | undefined;
   const passedQuiz = locationState?.quiz;
   const passedQuizKey = locationState?.quizKey;
-
-  useEffect(() => {
-    if (quizId && state.status === 'IDLE') {
-      // Quiz will be loaded when user clicks "Start Quiz"
-      // This effect is for future enhancements like pre-loading quiz data
-    }
-  }, [quizId, state.status]);
 
   const handleStartQuiz = async () => {
     setFetchError(null);
@@ -180,7 +179,7 @@ export const GameEngine = () => {
   if ((state.status === 'PLAYING' || state.status === 'FEEDBACK') && currentQuestion && state.quiz) {
     const isAnswered = state.status === 'FEEDBACK';
     const selectedAnswer = state.answers[currentQuestion.id];
-    const totalTime = state.quiz.timeLimit || 30;
+    const totalTime = state.quiz.timeLimit || DEFAULT_TIME_PER_QUESTION;
     const remainingQuestions = state.quiz.questions.length - state.currentQuestionIndex - 1;
 
     return (

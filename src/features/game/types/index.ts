@@ -1,3 +1,8 @@
+/**
+ * Game Feature Types
+ * Engine state, actions, and current-question helper
+ */
+
 import type { StandardQuiz } from '@/types/quiz';
 
 export type GameStatus = 'IDLE' | 'LOADING' | 'PLAYING' | 'FEEDBACK' | 'FINISHED';
@@ -37,6 +42,7 @@ export interface UseGameEngineReturn {
   currentQuestion: ReturnType<typeof getCurrentQuestion>;
 }
 
+/** Returns the active question, or null if the quiz is over */
 export const getCurrentQuestion = (state: GameState) => {
   if (!state.quiz || state.currentQuestionIndex >= state.quiz.questions.length) {
     return null;
